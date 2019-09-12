@@ -33,8 +33,12 @@ CNNLayerPtr Int8Calibrator::addScaleShiftBeforeLayer(std::string name, CNNLayer:
     params.type = "ScaleShift";
     CNNLayerPtr lptr = std::make_shared<ScaleShiftLayer>(params);
     ScaleShiftLayer *pScaleShift = dynamic_cast<ScaleShiftLayer *>(lptr.get());
+    if (pScaleShift == nullptr) {
+        THROW_IE_EXCEPTION << "Layer " << lptr->name << " is not instance of ScaleShiftLayer class";
+    }
+    const size_t numChannels = getTensorChannels(pData->getTensorDesc());
 
-    SizeVector wdims({ pData->getTensorDesc().getDims()[1] });
+    SizeVector wdims({ numChannels });
 
     if (scale.size() == 1) {
         scale.resize(wdims[0]);
@@ -43,37 +47,28 @@ CNNLayerPtr Int8Calibrator::addScaleShiftBeforeLayer(std::string name, CNNLayer:
         }
     }
 
-    if (scale.size() != pData->getTensorDesc().getDims()[1]) {
+    if (scale.size() != numChannels) {
         THROW_IE_EXCEPTION << "Failed to add scaleshift before " << beforeLayer->name << " due to scales and layer output dims incossitency";
     }
 
     Blob::Ptr weights = nullptr;
-    TensorDesc tdw;
-    tdw.setLayout(Layout::C);
-    tdw.setPrecision(Precision::FP32);
-    tdw.setDims(wdims);
-    weights = make_shared_blob<float>(tdw);
+    weights = make_shared_blob<float>({Precision::FP32, wdims, Layout::C});
     weights->allocate();
     float *buffer = weights->buffer().as<float *>();
     if (buffer == nullptr) {
         THROW_IE_EXCEPTION << "Could not allocate weights buffer";
     }
-    for (size_t i = 0; i < pData->getTensorDesc().getDims()[1]; i++) {
+    for (size_t i = 0; i < numChannels; i++) {
         buffer[i] = scale[i];
     }
     pScaleShift->_weights = weights;
 
-
-    SizeVector bdims({ pData->getTensorDesc().getDims()[1] });
+    SizeVector bdims({ numChannels });
     Blob::Ptr biases = nullptr;
-    TensorDesc tdb;
-    tdb.setLayout(Layout::C);
-    tdb.setPrecision(Precision::FP32);
-    tdb.setDims(bdims);
-    biases = make_shared_blob<float>(tdb);
+    biases = make_shared_blob<float>({Precision::FP32, bdims, Layout::C});
     biases->allocate();
     buffer = biases->buffer().as<float *>();
-    for (size_t i = 0; i < pData->getTensorDesc().getDims()[1]; i++) {
+    for (size_t i = 0; i < numChannels; i++) {
         buffer[i] = 0.f;
     }
     pScaleShift->_biases = biases;
@@ -82,7 +77,7 @@ CNNLayerPtr Int8Calibrator::addScaleShiftBeforeLayer(std::string name, CNNLayer:
     DataPtr newEdge(edge2);
     lptr->insData.push_back(pData);
     lptr->outData.push_back(newEdge);
-    newEdge->setName(params.name);
+    newEdge->setName(/*"EdgeAfter_" +*/ params.name);
     newEdge->getCreatorLayer() = lptr;
     newEdge->getInputTo().clear();
     newEdge->getInputTo()[beforeLayer->name] = beforeLayer;
@@ -201,7 +196,6 @@ void Int8Calibrator::collectFP32Statistic() {
         auto scaleShiftLayer = addScaleShiftBeforeLayer(firstInputName, layer, 0, { 1.f });
         ((ICNNNetwork&)network).addLayer(scaleShiftLayer);
     }
-
 
     // 1. add all layers as output one
     for (auto &&layer : network) {
