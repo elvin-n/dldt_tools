@@ -2,17 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-set (TARGET_NAME "kdivergence_calibration_tool")
+set (TARGET_NAME "validation_app")
 
 file (GLOB MAIN_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/../validation_app/pugixml/*.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/../validation_app/ClassificationProcessor.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/../validation_app/classification_set_generator.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/../validation_app/image_decoder.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/../validation_app/ObjectDetectionProcessor.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/../validation_app/Processor.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/../validation_app/VOCAnnotationParser.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/pugixml/*.cpp
         )
 
 file (GLOB MAIN_HEADERS
@@ -26,7 +20,7 @@ source_group("src" FILES ${MAIN_SRC})
 source_group("include" FILES ${MAIN_HEADERS})
 
 # Find OpenCV components if exist
-find_package(OpenCV COMPONENTS imgcodecs QUIET)
+find_package(OpenCV COMPONENTS imgcodecs imgproc QUIET)
 if(NOT(OpenCV_FOUND))
     message(WARNING "OPENCV is disabled or not found, " ${TARGET_NAME} " skipped")
     return()
@@ -36,8 +30,7 @@ endif()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../classification_sample/core
         ${CMAKE_CURRENT_SOURCE_DIR}/../common
         ${CMAKE_CURRENT_SOURCE_DIR}/../common/os/windows
-        ${CMAKE_CURRENT_SOURCE_DIR}/../../include
-        ${CMAKE_CURRENT_SOURCE_DIR}/../validation_app)
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../include)
 
 link_directories(${LIB_FOLDER})
 
@@ -51,4 +44,3 @@ if (UNIX)
     target_link_libraries(${TARGET_NAME} dl)
 endif()
 
-add_subdirectory(tests)

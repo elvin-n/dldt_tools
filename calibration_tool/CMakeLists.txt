@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-set (TARGET_NAME "kdivergence_calibration_tool")
+set (TARGET_NAME "calibration_tool")
 
 file (GLOB MAIN_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
@@ -26,7 +26,7 @@ source_group("src" FILES ${MAIN_SRC})
 source_group("include" FILES ${MAIN_HEADERS})
 
 # Find OpenCV components if exist
-find_package(OpenCV COMPONENTS imgcodecs QUIET)
+find_package(OpenCV COMPONENTS imgcodecs imgproc QUIET)
 if(NOT(OpenCV_FOUND))
     message(WARNING "OPENCV is disabled or not found, " ${TARGET_NAME} " skipped")
     return()
@@ -51,4 +51,3 @@ if (UNIX)
     target_link_libraries(${TARGET_NAME} dl)
 endif()
 
-add_subdirectory(tests)

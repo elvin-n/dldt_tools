@@ -52,12 +52,12 @@ endif()
 
 # use this flag if you need to throw custom message in case if the IE package is not found.
 if (IE_NOT_FOUND_MESSAGE)
-    find_package(InferenceEngine 1.5 QUIET)
+    find_package(InferenceEngine 2.1 QUIET)
     if (NOT(InferenceEngine_FOUND))
         message(FATAL_ERROR ${IE_NOT_FOUND_MESSAGE})
     endif()
 else()
-    find_package(InferenceEngine 1.5 REQUIRED)
+    find_package(InferenceEngine 2.1 REQUIRED)
 endif()
 
 if (WIN32)
@@ -120,5 +120,6 @@ file(GLOB subdirs RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *)
 # skip building of unnecessary subdirs
 list(REMOVE_ITEM subdirs archived common thirdparty)
 
+add_subdirectory(validation_app)
+add_subdirectory(calibration_tool)
 add_subdirectory(klcalibration)
-
