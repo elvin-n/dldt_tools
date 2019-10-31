@@ -20,8 +20,6 @@
 #include <iomanip>
 #include <memory>
 
-#include <ext_list.hpp>
-
 #include <samples/common.hpp>
 #include <samples/slog.hpp>
 
@@ -262,16 +260,6 @@ int main(int argc, char *argv[]) {
         if (!ee.empty()) throw ee;
         // -----------------------------------------------------------------------------------------------------
         Core ie;
-
-                /*If CPU device, load default library with extensions that comes with the product*/
-        if (FLAGS_d.find("CPU") != std::string::npos) {
-            /**
-            * cpu_extensions library is compiled from "extension" folder containing
-            * custom MKLDNNPlugin layer implementations. These layers are not supported
-            * by mkldnn, but they can be useful for inferring custom topologies.
-            **/
-            ie.AddExtension(std::make_shared<Extensions::Cpu::CpuExtensions>(), "CPU");
-        }
 
         if (!FLAGS_l.empty()) {
             // CPU(MKLDNN) extensions are loaded as a shared library and passed as a pointer to base extension

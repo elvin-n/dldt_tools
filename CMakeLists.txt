@@ -122,4 +122,4 @@ list(REMOVE_ITEM subdirs archived common thirdparty)
 
 add_subdirectory(validation_app)
 add_subdirectory(calibration_tool)
-add_subdirectory(klcalibration)
+#add_subdirectory(klcalibration)

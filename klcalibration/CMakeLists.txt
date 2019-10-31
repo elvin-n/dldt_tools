@@ -46,7 +46,7 @@ add_executable(${TARGET_NAME} ${MAIN_SRC} ${MAIN_HEADERS})
 
 set_target_properties(${TARGET_NAME} PROPERTIES "CMAKE_CXX_FLAGS" "${CMAKE_CXX_FLAGS} -fPIE" 
 COMPILE_PDB_NAME ${TARGET_NAME})
-target_link_libraries(${TARGET_NAME} gflags IE::ie_cpu_extension ${InferenceEngine_LIBRARIES} ${OpenCV_LIBRARIES})
+target_link_libraries(${TARGET_NAME} gflags ${InferenceEngine_LIBRARIES} ${OpenCV_LIBRARIES})
 if (UNIX)
     target_link_libraries(${TARGET_NAME} dl)
 endif()
