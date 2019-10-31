@@ -33,12 +33,6 @@ ClassificationProcessor::ClassificationProcessor(const std::string& flags_m, con
 std::shared_ptr<Processor::InferenceMetrics> ClassificationProcessor::Process(bool stream_output) {
      slog::info << "Collecting labels" << slog::endl;
      ClassificationSetGenerator generator;
-     try {
-         generator.readLabels(labelFileName);
-     } catch (InferenceEngine::details::InferenceEngineException& ex) {
-         slog::warn << "Can't read labels file " << labelFileName << slog::endl;
-         slog::warn << "Error: " << ex.what() << slog::endl;
-     }
 
      auto validationMap = generator.getValidationMap(imagesPath);
      ImageDecoder decoder;
