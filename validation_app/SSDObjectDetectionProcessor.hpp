@@ -26,8 +26,8 @@ protected:
         const auto detectionOutArray = inferRequest.GetBlob(firstOutputName);
         const float *box = detectionOutArray->buffer().as<float*>();
 
-        const size_t maxProposalCount = outputDims[0];
-        const size_t objectSize = outputDims[1];
+        const size_t maxProposalCount = outputDims[2];
+        const size_t objectSize = outputDims[3];
 
         for (size_t b = 0; b < batch; b++) {
             string fn = files[b];
@@ -39,10 +39,10 @@ protected:
             float image_id = box[i * objectSize + 0];
             float label = box[i * objectSize + 1];
             float confidence = box[i * objectSize + 2];
-            float xmin = box[i * objectSize + 3] * inputDims[2];
-            float ymin = box[i * objectSize + 4] * inputDims[3];
-            float xmax = box[i * objectSize + 5] * inputDims[2];
-            float ymax = box[i * objectSize + 6] * inputDims[3];
+            float xmin = box[i * objectSize + 3] * inputDims[3];
+            float ymin = box[i * objectSize + 4] * inputDims[2];
+            float xmax = box[i * objectSize + 5] * inputDims[3];
+            float ymax = box[i * objectSize + 6] * inputDims[2];
 
             if (image_id < 0 /* better than check == -1 */) {
                 break;  // Finish

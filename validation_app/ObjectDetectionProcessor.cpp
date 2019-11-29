@@ -98,6 +98,7 @@ shared_ptr<Processor::InferenceMetrics> ObjectDetectionProcessor::Process(bool s
     std::string firstInputName = this->inputInfo.begin()->first;
     auto firstInputBlob = inferRequest.GetBlob(firstInputName);
 
+    ImageDecoder decoder;
     while (iter != annCollector.annotations().end()) {
         std::vector<std::string> files;
         size_t b = 0;
@@ -107,14 +108,15 @@ shared_ptr<Processor::InferenceMetrics> ObjectDetectionProcessor::Process(bool s
             expected[b] = *iter;
             string filename = iter->folder + "/" + (!subdir.empty() ? subdir + "/" : "") + iter->filename;
             try {
+                Size orig_size = decoder.insertIntoBlob(std::string(imagesPath) + "/" + filename, b, *firstInputBlob, preprocessingOptions);
                 float scale_x, scale_y;
 
                 scale_x = 1.0f / iter->size.width;  // orig_size.width;
                 scale_y = 1.0f / iter->size.height;  // orig_size.height;
 
                 if (scaleProposalToInputSize) {
-                    scale_x *= firstInputBlob->getTensorDesc().getDims()[1];
-                    scale_y *= firstInputBlob->getTensorDesc().getDims()[0];
+                    scale_x *= firstInputBlob->getTensorDesc().getDims()[3];
+                    scale_y *= firstInputBlob->getTensorDesc().getDims()[2];
                 }
 
                 // Scaling the desired result (taken from the annotation) to the network size
