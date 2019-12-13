@@ -1,0 +1,846 @@
+<!DOCTYPE Project SYSTEM "http://www.slickedit.com/dtd/vse/10.0/vpj.dtd">
+<Project
+    Version="10.0"
+    VendorName="SlickEdit"
+    TemplateName="Other C/C++"
+    WorkingDir=".">
+    <Config
+        Name="Debug"
+        Type="cpp"
+        DebugCallbackName="gdb"
+        OutputFile="%bddldt_tools"
+        CompilerConfigName="None">
+        <Menu>
+            <Target
+                Name="Compile"
+                MenuCaption="&amp;Compile"
+                CaptureOutputWith="ProcessBuffer"
+                OutputExts="*.o"
+                SaveOption="SaveCurrent"
+                RunFromDir="%rw">
+                <Exec CmdLine='cc -c -g %i %defd -o "%bd%n.o" "%f"'/>
+            </Target>
+            <Target
+                Name="Link"
+                MenuCaption="&amp;Link">
+                <Exec CmdLine='cc -g -o "%o" %f %libs'/>
+            </Target>
+            <Target
+                Name="Build"
+                MenuCaption="&amp;Build"
+                CaptureOutputWith="ProcessBuffer"
+                SaveOption="SaveWorkspaceFiles"
+                RunFromDir="%rw">
+                <Exec CmdLine='"%(VSLICKBIN1)vsbuild" build "%w" "%r"'/>
+            </Target>
+            <Target
+                Name="Rebuild"
+                MenuCaption="&amp;Rebuild"
+                CaptureOutputWith="ProcessBuffer"
+                SaveOption="SaveWorkspaceFiles"
+                RunFromDir="%rw">
+                <Exec CmdLine='"%(VSLICKBIN1)vsbuild" rebuild "%w" "%r"'/>
+            </Target>
+            <Target
+                Name="Debug"
+                MenuCaption="&amp;Debug"
+                SaveOption="SaveNone"
+                CaptureOutputWith="ProcessBuffer"
+                RunFromDir="%rp/../build.debug/intel64/Debug">
+                <Exec CmdLine='"%(VSLICKBIN1)vsdebugio" -port 8001 -prog %rp/../build.debug/intel64/Debug/validation_app -m /home/elvin/int8/ssd_mobilenet/ssd_mobilenet.xml -i /home/elvin/VOC2007/testonly/VOCdevkit-100/ -t OD -ODkind SSD -ODa /home/elvin/VOC2007/testonly/VOCdevkit-100/VOC2007/Annotations/ -ODc /home/elvin/VOC2007/VOC_SSD_Classes.txt -ODsubdir JPEGImages -d CPU'/>
+            </Target>
+            <Target
+                Name="Execute"
+                MenuCaption="E&amp;xecute"
+                SaveOption="SaveNone"
+                BuildFirst="1"
+                CaptureOutputWith="ProcessBuffer"
+                RunFromDir="%rp/../build.debug/intel64/Debug">
+                <Exec CmdLine="%rp/../build.debug/intel64/Debug/validation_app -m /home/elvin/int8/ssd_mobilenet/ssd_mobilenet.xml -i /home/elvin/VOC2007/testonly/VOCdevkit-100/ -t OD -ODkind SSD -ODa /home/elvin/VOC2007/testonly/VOCdevkit-100/VOC2007/Annotations/ -ODc /home/elvin/VOC2007/VOC_SSD_Classes.txt -ODsubdir JPEGImages -d CPU"/>
+            </Target>
+        </Menu>
+    </Config>
+    <Config
+        Name="Release"
+        Type="cpp"
+        DebugCallbackName="gdb"
+        OutputFile="%bddldt_tools"
+        CompilerConfigName="None">
+        <Menu>
+            <Target
+                Name="Compile"
+                MenuCaption="&amp;Compile"
+                CaptureOutputWith="ProcessBuffer"
+                SaveOption="SaveCurrent"
+                OutputExts="*.o"
+                RunFromDir="%rw">
+                <Exec CmdLine='cc -c -O %i %defd -o "%bd%n.o" "%f"'/>
+            </Target>
+            <Target
+                Name="Link"
+                MenuCaption="&amp;Link">
+                <Exec CmdLine='cc -O -o "%o" %f %libs'/>
+            </Target>
+            <Target
+                Name="Build"
+                MenuCaption="&amp;Build"
+                CaptureOutputWith="ProcessBuffer"
+                SaveOption="SaveWorkspaceFiles"
+                RunFromDir="%rw">
+                <Exec CmdLine='"%(VSLICKBIN1)vsbuild" build "%w" "%r"'/>
+            </Target>
+            <Target
+                Name="Rebuild"
+                MenuCaption="&amp;Rebuild"
+                CaptureOutputWith="ProcessBuffer"
+                SaveOption="SaveWorkspaceFiles"
+                RunFromDir="%rw">
+                <Exec CmdLine='"%(VSLICKBIN1)vsbuild" rebuild "%w" "%r"'/>
+            </Target>
+            <Target
+                Name="Debug"
+                MenuCaption="&amp;Debug"
+                SaveOption="SaveNone"
+                CaptureOutputWith="ProcessBuffer"
+                RunFromDir="%rp/../build.debug/intel64/Debug">
+                <Exec CmdLine='"%(VSLICKBIN1)vsdebugio" -port 8001 -prog %rp/../build.debug/intel64/Debug/validation_app -m /home/elvin/int8/ssd_mobilenet/ssd_mobilenet.xml -i /home/elvin/VOC2007/testonly/VOCdevkit-100/ -t OD -ODkind SSD -ODa /home/elvin/VOC2007/testonly/VOCdevkit-100/VOC2007/Annotations/ -ODc /home/elvin/VOC2007/VOC_SSD_Classes.txt -ODsubdir JPEGImages -d CPU'/>
+            </Target>
+            <Target
+                Name="Execute"
+                MenuCaption="E&amp;xecute"
+                SaveOption="SaveNone"
+                BuildFirst="1"
+                CaptureOutputWith="ProcessBuffer"
+                RunFromDir="%rp/../build.debug/intel64/Debug">
+                <Exec CmdLine="%rp/../build.debug/intel64/Debug/validation_app -m /home/elvin/int8/ssd_mobilenet/ssd_mobilenet.xml -i /home/elvin/VOC2007/testonly/VOCdevkit-100/ -t OD -ODkind SSD -ODa /home/elvin/VOC2007/testonly/VOCdevkit-100/VOC2007/Annotations/ -ODc /home/elvin/VOC2007/VOC_SSD_Classes.txt -ODsubdir JPEGImages -d CPU"/>
+            </Target>
+        </Menu>
+    </Config>
+    <Rules Name="Compile">
+        <Rule
+            InputExts="*.s"
+            OutputExts="*.o"
+            LinkObject="1">
+            <Exec CmdLine='as -o "%bd%n.o" "%f"'/>
+        </Rule>
+    </Rules>
+    <Files>
+        <Folder
+            Name="calibration_tool"
+            AutoCustom="1"
+            GUID="{B1F6122A-11F3-48F0-B52F-48DE236BA432}">
+            <F N="../calibration_tool/main.cpp"/>
+            <F N="../calibration_tool/calibrator_processors.h"/>
+            <F N="../calibration_tool/CMakeLists.txt"/>
+            <F N="../calibration_tool/calibrator_processors.cpp"/>
+            <F N="../calibration_tool/data_stats.cpp"/>
+            <F N="../calibration_tool/data_stats.h"/>
+            <F N="../calibration_tool/README.md"/>
+        </Folder>
+        <Folder
+            Name="common"
+            AutoCustom="1"
+            GUID="{F6864AF3-DD4F-4829-A9AD-12B4760BF4F8}">
+            <Folder
+                Name="format_reader"
+                AutoCustom="1"
+                GUID="{1982F9D5-0B04-446D-B7F3-C9B31D6FC822}">
+                <F N="../common/format_reader/opencv_wraper.cpp"/>
+                <F N="../common/format_reader/bmp.cpp"/>
+                <F N="../common/format_reader/format_reader.h"/>
+                <F N="../common/format_reader/MnistUbyte.h"/>
+                <F N="../common/format_reader/opencv_wraper.h"/>
+                <F N="../common/format_reader/format_reader.cpp"/>
+                <F N="../common/format_reader/CMakeLists.txt"/>
+                <F N="../common/format_reader/bmp.h"/>
+                <F N="../common/format_reader/format_reader_ptr.h"/>
+                <F N="../common/format_reader/register.h"/>
+                <F N="../common/format_reader/MnistUbyte.cpp"/>
+            </Folder>
+            <Folder
+                Name="os"
+                AutoCustom="1"
+                GUID="{C183EC0B-896C-4597-9FF2-1B6DAD0CC81A}">
+                <Folder
+                    Name="windows"
+                    AutoCustom="1"
+                    GUID="{DEAD627F-1D50-4D9A-A7CC-77EDEDB6FA39}">
+                    <F N="../common/os/windows/w_dirent.h"/>
+                </Folder>
+            </Folder>
+            <Folder
+                Name="samples"
+                AutoCustom="1"
+                GUID="{D874B18A-588C-41BF-B87F-968031E2103E}">
+                <F N="../common/samples/slog.hpp"/>
+                <F N="../common/samples/args_helper.hpp"/>
+                <F N="../common/samples/common.hpp"/>
+                <F N="../common/samples/classification_results.h"/>
+                <F N="../common/samples/csv_dumper.hpp"/>
+                <F N="../common/samples/ocv_common.hpp"/>
+                <F N="../common/samples/console_progress.hpp"/>
+            </Folder>
+        </Folder>
+        <Folder
+            Name="klcalibration"
+            AutoCustom="1"
+            GUID="{A2949B01-5D07-4522-9A19-1DDAB3B0D668}">
+            <Folder
+                Name="tests"
+                AutoCustom="1"
+                GUID="{3AB305A8-9B34-41BB-813A-85F66D0CE83D}">
+                <F N="../klcalibration/tests/tensorstat_tests.cpp"/>
+                <F N="../klcalibration/tests/CMakeLists.txt"/>
+            </Folder>
+            <F N="../klcalibration/main.cpp"/>
+            <F N="../klcalibration/classification_set_generator.hpp"/>
+            <F N="../klcalibration/calibrator_processors.h"/>
+            <F N="../klcalibration/Processor.hpp"/>
+            <F N="../klcalibration/ClassificationProcessor.cpp"/>
+            <F N="../klcalibration/image_decoder.cpp"/>
+            <F N="../klcalibration/CMakeLists.txt"/>
+            <F N="../klcalibration/PreprocessingOptions.hpp"/>
+            <F N="../klcalibration/user_exception.hpp"/>
+            <F N="../klcalibration/calibrator_processors.cpp"/>
+            <F N="../klcalibration/classification_set_generator.cpp"/>
+            <F N="../klcalibration/data_stats.cpp"/>
+            <F N="../klcalibration/data_stats.h"/>
+            <F N="../klcalibration/README.md"/>
+            <F N="../klcalibration/Processor.cpp"/>
+            <F N="../klcalibration/ClassificationProcessor.hpp"/>
+            <F N="../klcalibration/image_decoder.hpp"/>
+        </Folder>
+        <Folder
+            Name="scripts"
+            AutoCustom="1"
+            GUID="{0BE45F1A-6CC6-4918-9DCB-3BF67F6F8A5A}">
+            <F N="dldt_tools.vpj"/>
+        </Folder>
+        <Folder
+            Name="thirdparty"
+            AutoCustom="1"
+            GUID="{F32836D3-2032-4F62-BB75-B113F4FDC810}">
+            <Folder
+                Name="gflags"
+                AutoCustom="1"
+                GUID="{4F98CB15-1A3D-4928-B595-251B5775BC41}">
+                <Folder
+                    Name="bazel"
+                    AutoCustom="1"
+                    GUID="{DA7A42DB-C283-478A-B849-C8B558882D78}">
+                    <F N="../thirdparty/gflags/bazel/gflags.bzl"/>
+                </Folder>
+                <Folder
+                    Name="cmake"
+                    AutoCustom="1"
+                    GUID="{D4AEDCA9-1C22-46EE-A79C-2F98EEC5B96B}">
+                    <F N="../thirdparty/gflags/cmake/README_runtime.txt"/>
+                    <F N="../thirdparty/gflags/cmake/package.pc.in"/>
+                    <F N="../thirdparty/gflags/cmake/utils.cmake"/>
+                    <F N="../thirdparty/gflags/cmake/config.cmake.in"/>
+                    <F N="../thirdparty/gflags/cmake/package.cmake.in"/>
+                    <F N="../thirdparty/gflags/cmake/execute_test.cmake"/>
+                    <F N="../thirdparty/gflags/cmake/version.cmake.in"/>
+                </Folder>
+                <Folder
+                    Name="src"
+                    AutoCustom="1"
+                    GUID="{53301939-2317-4E80-B806-3F0023686723}">
+                    <F N="../thirdparty/gflags/src/config.h.in"/>
+                    <F N="../thirdparty/gflags/src/gflags_completions.cc"/>
+                    <F N="../thirdparty/gflags/src/mutex.h"/>
+                    <F N="../thirdparty/gflags/src/gflags_completions.sh"/>
+                    <F N="../thirdparty/gflags/src/gflags_ns.h.in"/>
+                    <F N="../thirdparty/gflags/src/util.h"/>
+                    <F N="../thirdparty/gflags/src/windows_port.cc"/>
+                    <F N="../thirdparty/gflags/src/gflags.cc"/>
+                    <F N="../thirdparty/gflags/src/gflags_reporting.cc"/>
+                    <F N="../thirdparty/gflags/src/gflags.h.in"/>
+                    <F N="../thirdparty/gflags/src/gflags_declare.h.in"/>
+                    <F N="../thirdparty/gflags/src/gflags_completions.h.in"/>
+                    <F N="../thirdparty/gflags/src/windows_port.h"/>
+                </Folder>
+                <Folder
+                    Name="test"
+                    AutoCustom="1"
+                    GUID="{04C7B317-7A5F-4BD8-A01E-346C59C3E72E}">
+                    <Folder
+                        Name="config"
+                        AutoCustom="1"
+                        GUID="{FD995FEA-09DF-4170-A4B2-1392AEACE71D}">
+                        <F N="../thirdparty/gflags/test/config/CMakeLists.txt"/>
+                        <F N="../thirdparty/gflags/test/config/main.cc"/>
+                    </Folder>
+                    <Folder
+                        Name="nc"
+                        AutoCustom="1"
+                        GUID="{DA4C4A0B-828A-4A99-9110-3CACA4D86D4A}">
+                        <F N="../thirdparty/gflags/test/nc/CMakeLists.txt"/>
+                        <F N="../thirdparty/gflags/test/nc/gflags_nc.cc"/>
+                    </Folder>
+                    <F N="../thirdparty/gflags/test/gflags_declare_test.cc"/>
+                    <F N="../thirdparty/gflags/test/flagfile.1"/>
+                    <F N="../thirdparty/gflags/test/flagfile.3"/>
+                    <F N="../thirdparty/gflags/test/CMakeLists.txt"/>
+                    <F N="../thirdparty/gflags/test/gflags_declare_flags.cc"/>
+                    <F N="../thirdparty/gflags/test/gflags_unittest.cc"/>
+                    <F N="../thirdparty/gflags/test/gflags_strip_flags_test.cc"/>
+                    <F N="../thirdparty/gflags/test/gflags_strip_flags_test.cmake"/>
+                    <F N="../thirdparty/gflags/test/flagfile.2"/>
+                    <F N="../thirdparty/gflags/test/gflags_build.py.in"/>
+                </Folder>
+                <F N="../thirdparty/gflags/INSTALL.md"/>
+                <F N="../thirdparty/gflags/ChangeLog.txt"/>
+                <F N="../thirdparty/gflags/CMakeLists.txt"/>
+                <F N="../thirdparty/gflags/COPYING.txt"/>
+                <F N="../thirdparty/gflags/.gitignore"/>
+                <F N="../thirdparty/gflags/README.md"/>
+                <F N="../thirdparty/gflags/AUTHORS.txt"/>
+                <F N="../thirdparty/gflags/appveyor.yml"/>
+                <F N="../thirdparty/gflags/.gitattributes"/>
+                <F N="../thirdparty/gflags/.travis.yml"/>
+                <F N="../thirdparty/gflags/.gitmodules"/>
+            </Folder>
+            <Folder
+                Name="gtest"
+                AutoCustom="1"
+                GUID="{123BEDEA-B88B-4DFC-B1F7-068E2D94DFEA}">
+                <Folder
+                    Name="googlemock"
+                    AutoCustom="1"
+                    GUID="{591D70F6-DCB2-40D5-8FED-E5BF8EA44B2F}">
+                    <Folder
+                        Name="build-aux"
+                        AutoCustom="1"
+                        GUID="{86FDCAEA-2CD6-48D2-8D50-18F383FB90F1}">
+                        <F N="../thirdparty/gtest/googlemock/build-aux/.keep"/>
+                    </Folder>
+                    <Folder
+                        Name="cmake"
+                        AutoCustom="1"
+                        GUID="{2AAF1F63-540A-4CF9-89AD-389D95137742}">
+                        <F N="../thirdparty/gtest/googlemock/cmake/gmock_main.pc.in"/>
+                        <F N="../thirdparty/gtest/googlemock/cmake/gmock.pc.in"/>
+                    </Folder>
+                    <Folder
+                        Name="docs"
+                        AutoCustom="1"
+                        GUID="{3F8E3ACA-5A19-4218-924C-9BF58D30EC91}">
+                        <F N="../thirdparty/gtest/googlemock/docs/KnownIssues.md"/>
+                        <F N="../thirdparty/gtest/googlemock/docs/FrequentlyAskedQuestions.md"/>
+                        <F N="../thirdparty/gtest/googlemock/docs/DesignDoc.md"/>
+                        <F N="../thirdparty/gtest/googlemock/docs/Documentation.md"/>
+                        <F N="../thirdparty/gtest/googlemock/docs/CheatSheet.md"/>
+                        <F N="../thirdparty/gtest/googlemock/docs/DevGuide.md"/>
+                        <F N="../thirdparty/gtest/googlemock/docs/CookBook.md"/>
+                        <F N="../thirdparty/gtest/googlemock/docs/ForDummies.md"/>
+                    </Folder>
+                    <Folder
+                        Name="include"
+                        AutoCustom="1"
+                        GUID="{261DEBB7-6CB9-430C-8561-7AEE0FEBAD9E}">
+                        <Folder
+                            Name="gmock"
+                            AutoCustom="1"
+                            GUID="{BE46EC59-C2CA-442A-BC5F-856478D53B9C}">
+                            <Folder
+                                Name="internal"
+                                AutoCustom="1"
+                                GUID="{E55B2183-3DA8-4840-A0D5-CD670E8B4BF2}">
+                                <Folder
+                                    Name="custom"
+                                    AutoCustom="1"
+                                    GUID="{5B504B47-3EAC-422C-B66A-B3336F262BC2}">
+                                    <F N="../thirdparty/gtest/googlemock/include/gmock/internal/custom/gmock-generated-actions.h"/>
+                                    <F N="../thirdparty/gtest/googlemock/include/gmock/internal/custom/gmock-generated-actions.h.pump"/>
+                                    <F N="../thirdparty/gtest/googlemock/include/gmock/internal/custom/gmock-port.h"/>
+                                    <F N="../thirdparty/gtest/googlemock/include/gmock/internal/custom/gmock-matchers.h"/>
+                                </Folder>
+                                <F N="../thirdparty/gtest/googlemock/include/gmock/internal/gmock-port.h"/>
+                                <F N="../thirdparty/gtest/googlemock/include/gmock/internal/gmock-generated-internal-utils.h.pump"/>
+                                <F N="../thirdparty/gtest/googlemock/include/gmock/internal/gmock-generated-internal-utils.h"/>
+                                <F N="../thirdparty/gtest/googlemock/include/gmock/internal/gmock-internal-utils.h"/>
+                            </Folder>
+                            <F N="../thirdparty/gtest/googlemock/include/gmock/gmock-generated-actions.h"/>
+                            <F N="../thirdparty/gtest/googlemock/include/gmock/gmock-more-actions.h"/>
+                            <F N="../thirdparty/gtest/googlemock/include/gmock/gmock-generated-actions.h.pump"/>
+                            <F N="../thirdparty/gtest/googlemock/include/gmock/gmock-cardinalities.h"/>
+                            <F N="../thirdparty/gtest/googlemock/include/gmock/gmock.h"/>
+                            <F N="../thirdparty/gtest/googlemock/include/gmock/gmock-actions.h"/>
+                            <F N="../thirdparty/gtest/googlemock/include/gmock/gmock-generated-function-mockers.h.pump"/>
+                            <F N="../thirdparty/gtest/googlemock/include/gmock/gmock-generated-nice-strict.h.pump"/>
+                            <F N="../thirdparty/gtest/googlemock/include/gmock/gmock-generated-function-mockers.h"/>
+                            <F N="../thirdparty/gtest/googlemock/include/gmock/gmock-generated-matchers.h.pump"/>
+                            <F N="../thirdparty/gtest/googlemock/include/gmock/gmock-more-matchers.h"/>
+                            <F N="../thirdparty/gtest/googlemock/include/gmock/gmock-spec-builders.h"/>
+                            <F N="../thirdparty/gtest/googlemock/include/gmock/gmock-generated-matchers.h"/>
+                            <F N="../thirdparty/gtest/googlemock/include/gmock/gmock-matchers.h"/>
+                            <F N="../thirdparty/gtest/googlemock/include/gmock/gmock-generated-nice-strict.h"/>
+                        </Folder>
+                    </Folder>
+                    <Folder
+                        Name="msvc"
+                        AutoCustom="1"
+                        GUID="{4606B5BB-BEA0-4B8A-8AAA-B1086C6C3BDF}">
+                        <Folder
+                            Name="2005"
+                            AutoCustom="1"
+                            GUID="{1C46E53B-50D1-44FB-A116-937F04A0305E}">
+                            <F N="../thirdparty/gtest/googlemock/msvc/2005/gmock_config.vsprops"/>
+                            <F N="../thirdparty/gtest/googlemock/msvc/2005/gmock_test.vcproj"/>
+                            <F N="../thirdparty/gtest/googlemock/msvc/2005/gmock.vcproj"/>
+                            <F N="../thirdparty/gtest/googlemock/msvc/2005/gmock_main.vcproj"/>
+                            <F N="../thirdparty/gtest/googlemock/msvc/2005/gmock.sln"/>
+                        </Folder>
+                        <Folder
+                            Name="2010"
+                            AutoCustom="1"
+                            GUID="{E8D35D08-EE66-4C39-853A-797A3558BE16}">
+                            <F N="../thirdparty/gtest/googlemock/msvc/2010/gmock.vcxproj"/>
+                            <F N="../thirdparty/gtest/googlemock/msvc/2010/gmock_config.props"/>
+                            <F N="../thirdparty/gtest/googlemock/msvc/2010/gmock_main.vcxproj"/>
+                            <F N="../thirdparty/gtest/googlemock/msvc/2010/gmock.sln"/>
+                            <F N="../thirdparty/gtest/googlemock/msvc/2010/gmock_test.vcxproj"/>
+                        </Folder>
+                        <Folder
+                            Name="2015"
+                            AutoCustom="1"
+                            GUID="{766A955A-CD6D-4ABB-AABF-BBC3A810C1C9}">
+                            <F N="../thirdparty/gtest/googlemock/msvc/2015/gmock.vcxproj"/>
+                            <F N="../thirdparty/gtest/googlemock/msvc/2015/gmock_config.props"/>
+                            <F N="../thirdparty/gtest/googlemock/msvc/2015/gmock_main.vcxproj"/>
+                            <F N="../thirdparty/gtest/googlemock/msvc/2015/gmock.sln"/>
+                            <F N="../thirdparty/gtest/googlemock/msvc/2015/gmock_test.vcxproj"/>
+                        </Folder>
+                    </Folder>
+                    <Folder
+                        Name="scripts"
+                        AutoCustom="1"
+                        GUID="{B6A4B1CE-E188-46AC-8D0D-9D5449DC4BA7}">
+                        <Folder
+                            Name="generator"
+                            AutoCustom="1"
+                            GUID="{B38CDA2E-C640-493A-9720-20B987EA0BA5}">
+                            <Folder
+                                Name="cpp"
+                                AutoCustom="1"
+                                GUID="{422F74BB-0B5C-426E-B425-78EEB81F3060}">
+                                <F N="../thirdparty/gtest/googlemock/scripts/generator/cpp/tokenize.py"/>
+                                <F N="../thirdparty/gtest/googlemock/scripts/generator/cpp/gmock_class.py"/>
+                                <F N="../thirdparty/gtest/googlemock/scripts/generator/cpp/__init__.py"/>
+                                <F N="../thirdparty/gtest/googlemock/scripts/generator/cpp/ast.py"/>
+                                <F N="../thirdparty/gtest/googlemock/scripts/generator/cpp/gmock_class_test.py"/>
+                                <F N="../thirdparty/gtest/googlemock/scripts/generator/cpp/utils.py"/>
+                                <F N="../thirdparty/gtest/googlemock/scripts/generator/cpp/keywords.py"/>
+                            </Folder>
+                            <F N="../thirdparty/gtest/googlemock/scripts/generator/gmock_gen.py"/>
+                            <F N="../thirdparty/gtest/googlemock/scripts/generator/README.cppclean"/>
+                        </Folder>
+                        <F N="../thirdparty/gtest/googlemock/scripts/upload.py"/>
+                        <F N="../thirdparty/gtest/googlemock/scripts/fuse_gmock_files.py"/>
+                        <F N="../thirdparty/gtest/googlemock/scripts/gmock_doctor.py"/>
+                        <F N="../thirdparty/gtest/googlemock/scripts/upload_gmock.py"/>
+                        <F N="../thirdparty/gtest/googlemock/scripts/gmock-config.in"/>
+                    </Folder>
+                    <Folder
+                        Name="src"
+                        AutoCustom="1"
+                        GUID="{776E1DD8-0D7F-47EC-A254-DBCB2CD7EB71}">
+                        <F N="../thirdparty/gtest/googlemock/src/gmock_main.cc"/>
+                        <F N="../thirdparty/gtest/googlemock/src/gmock-all.cc"/>
+                        <F N="../thirdparty/gtest/googlemock/src/gmock-cardinalities.cc"/>
+                        <F N="../thirdparty/gtest/googlemock/src/gmock-internal-utils.cc"/>
+                        <F N="../thirdparty/gtest/googlemock/src/gmock-spec-builders.cc"/>
+                        <F N="../thirdparty/gtest/googlemock/src/gmock.cc"/>
+                        <F N="../thirdparty/gtest/googlemock/src/gmock-matchers.cc"/>
+                    </Folder>
+                    <Folder
+                        Name="test"
+                        AutoCustom="1"
+                        GUID="{3BA660D1-3247-441E-BBB4-658A11BED24A}">
+                        <F N="../thirdparty/gtest/googlemock/test/gmock_link_test.h"/>
+                        <F N="../thirdparty/gtest/googlemock/test/gmock_stress_test.cc"/>
+                        <F N="../thirdparty/gtest/googlemock/test/gmock_link2_test.cc"/>
+                        <F N="../thirdparty/gtest/googlemock/test/gmock-generated-internal-utils_test.cc"/>
+                        <F N="../thirdparty/gtest/googlemock/test/gmock_ex_test.cc"/>
+                        <F N="../thirdparty/gtest/googlemock/test/gmock-internal-utils_test.cc"/>
+                        <F N="../thirdparty/gtest/googlemock/test/gmock_all_test.cc"/>
+                        <F N="../thirdparty/gtest/googlemock/test/gmock_output_test_golden.txt"/>
+                        <F N="../thirdparty/gtest/googlemock/test/gmock_output_test_.cc"/>
+                        <F N="../thirdparty/gtest/googlemock/test/gmock-generated-function-mockers_test.cc"/>
+                        <F N="../thirdparty/gtest/googlemock/test/gmock-matchers_test.cc"/>
+                        <F N="../thirdparty/gtest/googlemock/test/gmock-generated-matchers_test.cc"/>
+                        <F N="../thirdparty/gtest/googlemock/test/gmock_link_test.cc"/>
+                        <F N="../thirdparty/gtest/googlemock/test/gmock-spec-builders_test.cc"/>
+                        <F N="../thirdparty/gtest/googlemock/test/gmock-more-actions_test.cc"/>
+                        <F N="../thirdparty/gtest/googlemock/test/gmock_leak_test.py"/>
+                        <F N="../thirdparty/gtest/googlemock/test/gmock_test.cc"/>
+                        <F N="../thirdparty/gtest/googlemock/test/BUILD.bazel"/>
+                        <F N="../thirdparty/gtest/googlemock/test/gmock_output_test.py"/>
+                        <F N="../thirdparty/gtest/googlemock/test/gmock_leak_test_.cc"/>
+                        <F N="../thirdparty/gtest/googlemock/test/gmock-actions_test.cc"/>
+                        <F N="../thirdparty/gtest/googlemock/test/gmock_test_utils.py"/>
+                        <F N="../thirdparty/gtest/googlemock/test/gmock-port_test.cc"/>
+                        <F N="../thirdparty/gtest/googlemock/test/gmock-nice-strict_test.cc"/>
+                        <F N="../thirdparty/gtest/googlemock/test/gmock-cardinalities_test.cc"/>
+                        <F N="../thirdparty/gtest/googlemock/test/gmock-generated-actions_test.cc"/>
+                    </Folder>
+                    <F N="../thirdparty/gtest/googlemock/configure.ac"/>
+                    <F N="../thirdparty/gtest/googlemock/CMakeLists.txt"/>
+                    <F N="../thirdparty/gtest/googlemock/Makefile.am"/>
+                    <F N="../thirdparty/gtest/googlemock/README.md"/>
+                </Folder>
+                <Folder
+                    Name="googletest"
+                    AutoCustom="1"
+                    GUID="{4CD111A1-79E1-4923-9D7D-CBA8840348E7}">
+                    <Folder
+                        Name="build-aux"
+                        AutoCustom="1"
+                        GUID="{2A76BAB8-2C66-448C-A93F-9FC1B703CC67}">
+                        <F N="../thirdparty/gtest/googletest/build-aux/.keep"/>
+                    </Folder>
+                    <Folder
+                        Name="cmake"
+                        AutoCustom="1"
+                        GUID="{4E9D355E-227D-4D4C-8846-23251779A953}">
+                        <F N="../thirdparty/gtest/googletest/cmake/gtest_main.pc.in"/>
+                        <F N="../thirdparty/gtest/googletest/cmake/gtest.pc.in"/>
+                        <F N="../thirdparty/gtest/googletest/cmake/internal_utils.cmake"/>
+                    </Folder>
+                    <Folder
+                        Name="codegear"
+                        AutoCustom="1"
+                        GUID="{CA0797DA-D4D3-4B2A-96B5-2EEA8EEF832C}">
+                        <F N="../thirdparty/gtest/googletest/codegear/gtest_all.cc"/>
+                        <F N="../thirdparty/gtest/googletest/codegear/gtest_unittest.cbproj"/>
+                        <F N="../thirdparty/gtest/googletest/codegear/gtest.cbproj"/>
+                        <F N="../thirdparty/gtest/googletest/codegear/gtest_main.cbproj"/>
+                        <F N="../thirdparty/gtest/googletest/codegear/gtest_link.cc"/>
+                        <F N="../thirdparty/gtest/googletest/codegear/gtest.groupproj"/>
+                    </Folder>
+                    <Folder
+                        Name="docs"
+                        AutoCustom="1"
+                        GUID="{CC8FEEB9-22E4-4507-A533-A4ADBC9EB152}">
+                        <F N="../thirdparty/gtest/googletest/docs/Samples.md"/>
+                        <F N="../thirdparty/gtest/googletest/docs/AdvancedGuide.md"/>
+                        <F N="../thirdparty/gtest/googletest/docs/FAQ.md"/>
+                        <F N="../thirdparty/gtest/googletest/docs/Primer.md"/>
+                        <F N="../thirdparty/gtest/googletest/docs/Documentation.md"/>
+                        <F N="../thirdparty/gtest/googletest/docs/DevGuide.md"/>
+                        <F N="../thirdparty/gtest/googletest/docs/XcodeGuide.md"/>
+                        <F N="../thirdparty/gtest/googletest/docs/Pkgconfig.md"/>
+                        <F N="../thirdparty/gtest/googletest/docs/PumpManual.md"/>
+                    </Folder>
+                    <Folder
+                        Name="include"
+                        AutoCustom="1"
+                        GUID="{1B10004D-685A-448F-A604-D5F08DB2ECEE}">
+                        <Folder
+                            Name="gtest"
+                            AutoCustom="1"
+                            GUID="{93D1A197-C726-482F-BBA3-DF9A5D704A22}">
+                            <Folder
+                                Name="internal"
+                                AutoCustom="1"
+                                GUID="{FD5DFC01-A8D1-449E-8416-DE9BA3939F7B}">
+                                <Folder
+                                    Name="custom"
+                                    AutoCustom="1"
+                                    GUID="{FA094E04-F309-420D-B9B3-5CA60D1FACD2}">
+                                    <F N="../thirdparty/gtest/googletest/include/gtest/internal/custom/gtest.h"/>
+                                    <F N="../thirdparty/gtest/googletest/include/gtest/internal/custom/gtest-printers.h"/>
+                                    <F N="../thirdparty/gtest/googletest/include/gtest/internal/custom/gtest-port.h"/>
+                                </Folder>
+                                <F N="../thirdparty/gtest/googletest/include/gtest/internal/gtest-tuple.h.pump"/>
+                                <F N="../thirdparty/gtest/googletest/include/gtest/internal/gtest-type-util.h"/>
+                                <F N="../thirdparty/gtest/googletest/include/gtest/internal/gtest-type-util.h.pump"/>
+                                <F N="../thirdparty/gtest/googletest/include/gtest/internal/gtest-param-util-generated.h"/>
+                                <F N="../thirdparty/gtest/googletest/include/gtest/internal/gtest-death-test-internal.h"/>
+                                <F N="../thirdparty/gtest/googletest/include/gtest/internal/gtest-string.h"/>
+                                <F N="../thirdparty/gtest/googletest/include/gtest/internal/gtest-port-arch.h"/>
+                                <F N="../thirdparty/gtest/googletest/include/gtest/internal/gtest-param-util.h"/>
+                                <F N="../thirdparty/gtest/googletest/include/gtest/internal/gtest-linked_ptr.h"/>
+                                <F N="../thirdparty/gtest/googletest/include/gtest/internal/gtest-port.h"/>
+                                <F N="../thirdparty/gtest/googletest/include/gtest/internal/gtest-param-util-generated.h.pump"/>
+                                <F N="../thirdparty/gtest/googletest/include/gtest/internal/gtest-tuple.h"/>
+                                <F N="../thirdparty/gtest/googletest/include/gtest/internal/gtest-internal.h"/>
+                                <F N="../thirdparty/gtest/googletest/include/gtest/internal/gtest-filepath.h"/>
+                            </Folder>
+                            <F N="../thirdparty/gtest/googletest/include/gtest/gtest-message.h"/>
+                            <F N="../thirdparty/gtest/googletest/include/gtest/gtest-param-test.h.pump"/>
+                            <F N="../thirdparty/gtest/googletest/include/gtest/gtest.h"/>
+                            <F N="../thirdparty/gtest/googletest/include/gtest/gtest-typed-test.h"/>
+                            <F N="../thirdparty/gtest/googletest/include/gtest/gtest-printers.h"/>
+                            <F N="../thirdparty/gtest/googletest/include/gtest/gtest_prod.h"/>
+                            <F N="../thirdparty/gtest/googletest/include/gtest/gtest-test-part.h"/>
+                            <F N="../thirdparty/gtest/googletest/include/gtest/gtest-param-test.h"/>
+                            <F N="../thirdparty/gtest/googletest/include/gtest/gtest-death-test.h"/>
+                            <F N="../thirdparty/gtest/googletest/include/gtest/gtest_pred_impl.h"/>
+                            <F N="../thirdparty/gtest/googletest/include/gtest/gtest-spi.h"/>
+                        </Folder>
+                    </Folder>
+                    <Folder
+                        Name="m4"
+                        AutoCustom="1"
+                        GUID="{ECEE9DD5-8853-4D9C-8C8F-9E8A3200EC12}">
+                        <F N="../thirdparty/gtest/googletest/m4/gtest.m4"/>
+                        <F N="../thirdparty/gtest/googletest/m4/acx_pthread.m4"/>
+                    </Folder>
+                    <Folder
+                        Name="msvc"
+                        AutoCustom="1"
+                        GUID="{B1C7381F-9C42-43DA-9F62-9B054AF91DCE}">
+                        <Folder
+                            Name="2010"
+                            AutoCustom="1"
+                            GUID="{36C1BDA0-34A1-41BD-8D0F-51B53D627035}">
+                            <F N="../thirdparty/gtest/googletest/msvc/2010/gtest_unittest.vcxproj"/>
+                            <F N="../thirdparty/gtest/googletest/msvc/2010/gtest_prod_test-md.vcxproj"/>
+                            <F N="../thirdparty/gtest/googletest/msvc/2010/gtest_main.vcxproj.filters"/>
+                            <F N="../thirdparty/gtest/googletest/msvc/2010/gtest_unittest.vcxproj.filters"/>
+                            <F N="../thirdparty/gtest/googletest/msvc/2010/gtest-md.vcxproj.filters"/>
+                            <F N="../thirdparty/gtest/googletest/msvc/2010/gtest_main-md.vcxproj.filters"/>
+                            <F N="../thirdparty/gtest/googletest/msvc/2010/gtest_prod_test.vcxproj"/>
+                            <F N="../thirdparty/gtest/googletest/msvc/2010/gtest_unittest-md.vcxproj.filters"/>
+                            <F N="../thirdparty/gtest/googletest/msvc/2010/gtest-md.vcxproj"/>
+                            <F N="../thirdparty/gtest/googletest/msvc/2010/gtest_prod_test.vcxproj.filters"/>
+                            <F N="../thirdparty/gtest/googletest/msvc/2010/gtest_prod_test-md.vcxproj.filters"/>
+                            <F N="../thirdparty/gtest/googletest/msvc/2010/gtest.vcxproj.filters"/>
+                            <F N="../thirdparty/gtest/googletest/msvc/2010/gtest_main.vcxproj"/>
+                            <F N="../thirdparty/gtest/googletest/msvc/2010/gtest-md.sln"/>
+                            <F N="../thirdparty/gtest/googletest/msvc/2010/gtest.vcxproj"/>
+                            <F N="../thirdparty/gtest/googletest/msvc/2010/gtest_main-md.vcxproj"/>
+                            <F N="../thirdparty/gtest/googletest/msvc/2010/gtest_unittest-md.vcxproj"/>
+                            <F N="../thirdparty/gtest/googletest/msvc/2010/gtest.sln"/>
+                        </Folder>
+                    </Folder>
+                    <Folder
+                        Name="samples"
+                        AutoCustom="1"
+                        GUID="{5DCE1D34-2FEB-4D7E-B5C5-082E0A3ACD7E}">
+                        <F N="../thirdparty/gtest/googletest/samples/sample7_unittest.cc"/>
+                        <F N="../thirdparty/gtest/googletest/samples/sample2.h"/>
+                        <F N="../thirdparty/gtest/googletest/samples/sample3-inl.h"/>
+                        <F N="../thirdparty/gtest/googletest/samples/sample4.h"/>
+                        <F N="../thirdparty/gtest/googletest/samples/sample5_unittest.cc"/>
+                        <F N="../thirdparty/gtest/googletest/samples/prime_tables.h"/>
+                        <F N="../thirdparty/gtest/googletest/samples/sample2.cc"/>
+                        <F N="../thirdparty/gtest/googletest/samples/sample1_unittest.cc"/>
+                        <F N="../thirdparty/gtest/googletest/samples/sample9_unittest.cc"/>
+                        <F N="../thirdparty/gtest/googletest/samples/sample4_unittest.cc"/>
+                        <F N="../thirdparty/gtest/googletest/samples/sample2_unittest.cc"/>
+                        <F N="../thirdparty/gtest/googletest/samples/sample10_unittest.cc"/>
+                        <F N="../thirdparty/gtest/googletest/samples/sample3_unittest.cc"/>
+                        <F N="../thirdparty/gtest/googletest/samples/sample6_unittest.cc"/>
+                        <F N="../thirdparty/gtest/googletest/samples/sample8_unittest.cc"/>
+                        <F N="../thirdparty/gtest/googletest/samples/sample1.cc"/>
+                        <F N="../thirdparty/gtest/googletest/samples/sample4.cc"/>
+                        <F N="../thirdparty/gtest/googletest/samples/sample1.h"/>
+                    </Folder>
+                    <Folder
+                        Name="scripts"
+                        AutoCustom="1"
+                        GUID="{8C86B013-3219-4814-9071-DBA4E5D68E1A}">
+                        <F N="../thirdparty/gtest/googletest/scripts/upload.py"/>
+                        <F N="../thirdparty/gtest/googletest/scripts/common.py"/>
+                        <F N="../thirdparty/gtest/googletest/scripts/pump.py"/>
+                        <F N="../thirdparty/gtest/googletest/scripts/fuse_gtest_files.py"/>
+                        <F N="../thirdparty/gtest/googletest/scripts/gen_gtest_pred_impl.py"/>
+                        <F N="../thirdparty/gtest/googletest/scripts/release_docs.py"/>
+                        <F N="../thirdparty/gtest/googletest/scripts/gtest-config.in"/>
+                        <F N="../thirdparty/gtest/googletest/scripts/upload_gtest.py"/>
+                    </Folder>
+                    <Folder
+                        Name="src"
+                        AutoCustom="1"
+                        GUID="{0B9BC5EB-2935-4B93-B60D-BAED3B067668}">
+                        <F N="../thirdparty/gtest/googletest/src/gtest-death-test.cc"/>
+                        <F N="../thirdparty/gtest/googletest/src/gtest-filepath.cc"/>
+                        <F N="../thirdparty/gtest/googletest/src/gtest-printers.cc"/>
+                        <F N="../thirdparty/gtest/googletest/src/gtest-test-part.cc"/>
+                        <F N="../thirdparty/gtest/googletest/src/gtest_main.cc"/>
+                        <F N="../thirdparty/gtest/googletest/src/gtest.cc"/>
+                        <F N="../thirdparty/gtest/googletest/src/gtest-port.cc"/>
+                        <F N="../thirdparty/gtest/googletest/src/gtest-typed-test.cc"/>
+                        <F N="../thirdparty/gtest/googletest/src/gtest-all.cc"/>
+                        <F N="../thirdparty/gtest/googletest/src/gtest-internal-inl.h"/>
+                    </Folder>
+                    <Folder
+                        Name="test"
+                        AutoCustom="1"
+                        GUID="{81C00001-4070-4E51-B14E-E5B978C03A78}">
+                        <F N="../thirdparty/gtest/googletest/test/gtest_test_utils.py"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_uninitialized_test_.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_xml_output_unittest.py"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest-death-test_test.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_env_var_test.py"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_list_tests_unittest_.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_xml_outfiles_test.py"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_catch_exceptions_test_.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_color_test_.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_list_tests_unittest.py"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest-listener_test.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_catch_exceptions_test.py"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest-unittest-api_test.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_break_on_failure_unittest.py"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_no_test_unittest.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_uninitialized_test.py"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_help_test_.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest-death-test_ex_test.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest-param-test_test.h"/>
+                        <F N="../thirdparty/gtest/googletest/test/production.h"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest-options_test.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_help_test.py"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest-printers_test.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest-param-test_test.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_shuffle_test.py"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_environment_test.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_xml_test_utils.py"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_prod_test.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest-port_test.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_filter_unittest_.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_throw_on_failure_ex_test.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest-filepath_test.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_color_test.py"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest-typed-test_test.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest-test-part_test.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/production.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest-typed-test2_test.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_shuffle_test_.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest-typed-test_test.h"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest-message_test.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_output_test_golden_lin.txt"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_env_var_test_.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_pred_impl_unittest.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_sole_header_test.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_throw_on_failure_test_.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/BUILD.bazel"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_unittest.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest-tuple_test.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest-linked_ptr_test.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_break_on_failure_unittest_.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_xml_output_unittest_.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_repeat_test.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_premature_exit_test.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_filter_unittest.py"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest-param-test2_test.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_main_unittest.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_xml_outfile1_test_.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_stress_test.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_all_test.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_output_test_.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_output_test.py"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_xml_outfile2_test_.cc"/>
+                        <F N="../thirdparty/gtest/googletest/test/gtest_throw_on_failure_test.py"/>
+                    </Folder>
+                    <Folder
+                        Name="xcode"
+                        AutoCustom="1"
+                        GUID="{2DD3998E-F1CD-4470-A94D-3DB3CBEA3A6B}">
+                        <Folder
+                            Name="Config"
+                            AutoCustom="1"
+                            GUID="{8173B639-4217-4801-B7CD-FB393A330CEB}">
+                            <F N="../thirdparty/gtest/googletest/xcode/Config/FrameworkTarget.xcconfig"/>
+                            <F N="../thirdparty/gtest/googletest/xcode/Config/DebugProject.xcconfig"/>
+                            <F N="../thirdparty/gtest/googletest/xcode/Config/TestTarget.xcconfig"/>
+                            <F N="../thirdparty/gtest/googletest/xcode/Config/General.xcconfig"/>
+                            <F N="../thirdparty/gtest/googletest/xcode/Config/ReleaseProject.xcconfig"/>
+                            <F N="../thirdparty/gtest/googletest/xcode/Config/StaticLibraryTarget.xcconfig"/>
+                        </Folder>
+                        <Folder
+                            Name="gtest.xcodeproj"
+                            AutoCustom="1"
+                            GUID="{63FFBE07-4B51-4C46-A29B-7746032810C1}">
+                            <F N="../thirdparty/gtest/googletest/xcode/gtest.xcodeproj/project.pbxproj"/>
+                        </Folder>
+                        <Folder
+                            Name="Resources"
+                            AutoCustom="1"
+                            GUID="{B9F66B02-5B8A-4E97-BAFB-0C6B530386BF}">
+                            <F N="../thirdparty/gtest/googletest/xcode/Resources/Info.plist"/>
+                        </Folder>
+                        <Folder
+                            Name="Samples"
+                            AutoCustom="1"
+                            GUID="{59095419-71B8-49D4-A80A-45731EECBFE0}">
+                            <Folder
+                                Name="FrameworkSample"
+                                AutoCustom="1"
+                                GUID="{2D5F383E-39B4-4B29-8055-F58FE3F07A84}">
+                                <Folder
+                                    Name="WidgetFramework.xcodeproj"
+                                    AutoCustom="1"
+                                    GUID="{2E13EF8B-E1C5-4D47-BED7-F8606572E09A}">
+                                    <F N="../thirdparty/gtest/googletest/xcode/Samples/FrameworkSample/WidgetFramework.xcodeproj/project.pbxproj"/>
+                                </Folder>
+                                <F N="../thirdparty/gtest/googletest/xcode/Samples/FrameworkSample/widget.cc"/>
+                                <F N="../thirdparty/gtest/googletest/xcode/Samples/FrameworkSample/widget_test.cc"/>
+                                <F N="../thirdparty/gtest/googletest/xcode/Samples/FrameworkSample/Info.plist"/>
+                                <F N="../thirdparty/gtest/googletest/xcode/Samples/FrameworkSample/runtests.sh"/>
+                                <F N="../thirdparty/gtest/googletest/xcode/Samples/FrameworkSample/widget.h"/>
+                            </Folder>
+                        </Folder>
+                        <Folder
+                            Name="Scripts"
+                            AutoCustom="1"
+                            GUID="{89C00123-1B00-4BB2-AEA4-DD939D7DA96A}">
+                            <F N="../thirdparty/gtest/googletest/xcode/Scripts/versiongenerate.py"/>
+                            <F N="../thirdparty/gtest/googletest/xcode/Scripts/runtests.sh"/>
+                        </Folder>
+                    </Folder>
+                    <F N="../thirdparty/gtest/googletest/configure.ac"/>
+                    <F N="../thirdparty/gtest/googletest/CMakeLists.txt"/>
+                    <F N="../thirdparty/gtest/googletest/.gitignore"/>
+                    <F N="../thirdparty/gtest/googletest/Makefile.am"/>
+                    <F N="../thirdparty/gtest/googletest/README.md"/>
+                </Folder>
+                <F N="../thirdparty/gtest/travis.sh"/>
+                <F N="../thirdparty/gtest/CMakeLists.txt"/>
+                <F N="../thirdparty/gtest/.gitignore"/>
+                <F N="../thirdparty/gtest/BUILD.bazel"/>
+                <F N="../thirdparty/gtest/README.md"/>
+                <F N="../thirdparty/gtest/appveyor.yml"/>
+                <F N="../thirdparty/gtest/.travis.yml"/>
+            </Folder>
+        </Folder>
+        <Folder
+            Name="validation_app"
+            AutoCustom="1"
+            GUID="{FF37651C-AAA2-4BC0-BDCD-E89A3A024AEB}">
+            <Folder
+                Name="pugixml"
+                AutoCustom="1"
+                GUID="{F9469116-E0D0-445A-8568-AD4414E33C87}">
+                <F N="../validation_app/pugixml/pugixml.cpp"/>
+                <F N="../validation_app/pugixml/pugixml.hpp"/>
+                <F N="../validation_app/pugixml/pugiconfig.hpp"/>
+            </Folder>
+            <F N="../validation_app/main.cpp"/>
+            <F N="../validation_app/classification_set_generator.hpp"/>
+            <F N="../validation_app/SSDObjectDetectionProcessor.hpp"/>
+            <F N="../validation_app/ObjectDetectionProcessor.hpp"/>
+            <F N="../validation_app/VOCAnnotationParser.hpp"/>
+            <F N="../validation_app/Processor.hpp"/>
+            <F N="../validation_app/YOLOObjectDetectionProcessor.hpp"/>
+            <F N="../validation_app/ClassificationProcessor.cpp"/>
+            <F N="../validation_app/image_decoder.cpp"/>
+            <F N="../validation_app/VOCAnnotationParser.cpp"/>
+            <F N="../validation_app/CMakeLists.txt"/>
+            <F N="../validation_app/PreprocessingOptions.hpp"/>
+            <F N="../validation_app/user_exception.hpp"/>
+            <F N="../validation_app/ObjectDetectionProcessor.cpp"/>
+            <F N="../validation_app/classification_set_generator.cpp"/>
+            <F N="../validation_app/README.md"/>
+            <F N="../validation_app/Processor.cpp"/>
+            <F N="../validation_app/ClassificationProcessor.hpp"/>
+            <F N="../validation_app/.SSDObjectDetectionProcessor.hpp.swp"/>
+            <F N="../validation_app/image_decoder.hpp"/>
+        </Folder>
+        <F N="../build.sh"/>
+        <F N="../CMakeLists.txt"/>
+        <F N="../README.md"/>
+    </Files>
+</Project>
