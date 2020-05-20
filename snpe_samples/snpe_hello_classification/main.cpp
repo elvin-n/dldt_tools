@@ -105,8 +105,16 @@ int wmain(int argc, wchar_t *argv[]) {
         zdl::DlSystem::UserBufferMap inputMap, outputMap;
         zdl::DlSystem::TensorMap outputTensorMap;
         std::vector<std::unique_ptr<zdl::DlSystem::IUserBuffer>> snpeUserBackedInputBuffers, snpeUserBackedOutputBuffers;
-
         std::unordered_map<std::string, std::vector<uint8_t>> applicationOutputBuffers;
+
+        zdl::DlSystem::TensorShape iTShape = snpe->getInputDimensions();
+        // verification of input dimensions number - should be 4, NHWC
+        if (iTShape.rank() != 4) {
+            std::cerr << "Input layer expect data having " << iTShape.rank() << " dimensions shape, while we expect 4" << std::endl;
+            return EXIT_FAILURE;
+        }
+        const zdl::DlSystem::Dimension *shapes = iTShape.getDimensions();
+        std::cout << "Input Shape (" << shapes[0] << "," << shapes[1] << "," << shapes[2] << "," << shapes[3] << ")" << std::endl;
 
         cv::Mat image = cv::imread(input_image_path);
         std::cout << "Image parameters: Channels=" << image.channels() << ", width=" << image.cols <<
@@ -114,7 +122,7 @@ int wmain(int argc, wchar_t *argv[]) {
 
         Time::time_point time4 = Time::now();
         cv::Mat resized_image(image);
-        cv::resize(image, resized_image, cv::Size(224, 224));
+        cv::resize(image, resized_image, cv::Size(shapes[2], shapes[1]));
         std::cout << "Resized image parameters: Channels=" << resized_image.channels()<< ", width=" << resized_image.cols <<
         ", height=" << resized_image.rows << std::endl;
         Time::time_point time5 = Time::now();
@@ -123,8 +131,9 @@ int wmain(int argc, wchar_t *argv[]) {
 
         // Option 1: To create a floating number buffer in my space, copy data from cvMat, create ITensor on top of this buffer
         // and verify if data is copied or reused by ITensor
-        float* dummy = new float[3 * 224 * 224];
-        for (size_t i = 0; i < 3 * 224 * 224; i++) {
+        size_t nielements = shapes[1] * shapes[2] * shapes[3];
+        float *dummy = new float[nielements];
+        for (size_t i = 0; i < nielements; i++) {
             dummy[i] = resized_image.data[i];
         }
 
@@ -132,7 +141,7 @@ int wmain(int argc, wchar_t *argv[]) {
         std::unique_ptr<zdl::DlSystem::ITensor> inputTensor =
             zdl::SNPE::SNPEFactory::getTensorFactory().createTensor(snpe->getInputDimensions(),
                                                                     reinterpret_cast<const unsigned char *>(dummy),
-                                                                    3 * 224 * 224 * sizeof(float));
+                                                                    nielements * sizeof(float));
         Time::time_point time7 = Time::now();
         zdl::DlSystem::ITensor *t = inputTensor.get();
         if (!inputTensor.get()) {

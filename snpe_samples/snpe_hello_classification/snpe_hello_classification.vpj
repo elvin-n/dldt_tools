@@ -134,18 +134,6 @@
             <F N="main.cpp"/>
         </Folder>
         <Folder
-            Name="Header Files"
-            Filters="*.h;*.H;*.hh;*.hpp;*.hxx;*.h++;*.inc;*.sh;*.cpy;*.if"
-            GUID="{EBF49178-6273-44D4-950A-E4E8CC26230D}"/>
-        <Folder
-            Name="Resource Files"
-            Filters="*.ico;*.cur;*.dlg"
-            GUID="{F2EC7DEB-5001-4614-86DD-BBEA1F66D386}"/>
-        <Folder
-            Name="Bitmaps"
-            Filters="*.bmp"
-            GUID="{905121E9-7016-470E-A73C-D0CFDCEBB770}"/>
-        <Folder
             Name="Other Files"
             Filters=""
             GUID="{C9458579-F8A1-4760-9425-5C3CAE4A41F0}">
