@@ -17,14 +17,27 @@
 #include <samples/common.hpp>
 #include <samples/slog.hpp>
 
-using InferenceEngine::details::InferenceEngineException;
-
-ObjectDetectionProcessor::ObjectDetectionProcessor(const std::string& flags_m, const std::string& flags_d,
+ObjectDetectionProcessor::ObjectDetectionProcessor(Backend *backend, const std::string &flags_m, const std::vector<std::string> &outputs,
+                                                   const std::string &flags_d,
         const std::string& flags_i, const std::string& subdir, int flags_b,
-        double threshold, InferenceEngine::Core ie, CsvDumper& dumper,
+        double threshold, CsvDumper& dumper,
         const std::string& flags_a, const std::string& classes_list_file, PreprocessingOptions preprocessingOptions, bool scaleProposalToInputSize)
-            : Processor(flags_m, flags_d, flags_i, flags_b, ie, dumper, "Object detection network", preprocessingOptions),
+        : Processor(backend, flags_m, outputs, flags_d, flags_i, flags_b, dumper, "Object detection network", preprocessingOptions),
               annotationsPath(flags_a), subdir(subdir), threshold(threshold), scaleProposalToInputSize(scaleProposalToInputSize) {
+    // To support faster-rcnn having several inputs we need to identify input dedicated for image correctly
+    for (auto &item : _inputInfo) {
+        if (item.second._shape.size() == 4) {
+            inputDims = item.second._shape;
+            picInputName = item.first;
+        } else if (item.second._shape.size() == 2) {
+            auto inputScale = _backend->getBlob(item.first);
+            float *sdata = static_cast<float *>(inputScale->_data);
+            sdata[0] = 600.f;
+            sdata[1] = 1024.f;
+            sdata[2] = 1.f;
+        }
+    }
+
     std::ifstream clf(classes_list_file);
     if (!clf) {
         throw UserException(1) <<  "Classes list file \"" << classes_list_file << "\" not found or inaccessible";
@@ -35,13 +48,15 @@ ObjectDetectionProcessor::ObjectDetectionProcessor(const std::string& flags_m, c
         std::getline(clf, line, '\n');
 
         if (line != "") {
-            istringstream lss(line);
-            std::string id;
-            lss >> id;
-            int class_index = 0;
-            lss >> class_index;
-
-            classes.insert(std::pair<std::string, int>(id, class_index));
+            // look for the latest space symbol
+            size_t spos = line.find_last_of(" ");
+            std::string className;
+            int classId;
+            className = line.substr(0, spos);
+            std::string strId = line.substr(spos, line.length() - spos);
+            istringstream streamId(strId);
+            streamId >> classId;
+            classes.insert(std::pair<std::string, int>(className, classId));
         }
     }
 }
@@ -73,13 +88,6 @@ shared_ptr<Processor::InferenceMetrics> ObjectDetectionProcessor::Process(bool s
         ImageDescription id(dobList);
         desiredForFiles.insert(std::pair<std::string, ImageDescription>(ann.folder + "/" + (!subdir.empty() ? subdir + "/" : "") + ann.filename, id));
     }
-
-    for (auto & item : outInfo) {
-        DataPtr outputData = item.second;
-        if (!outputData) {
-            throw std::logic_error("output data pointer is not valid");
-        }
-    }
     // -----------------------------------------------------------------------------------------------------
 
     // ----------------------------Do inference-------------------------------------------------------------
@@ -95,8 +103,7 @@ shared_ptr<Processor::InferenceMetrics> ObjectDetectionProcessor::Process(bool s
 
     std::map<std::string, ImageDescription> scaledDesiredForFiles;
 
-    std::string firstInputName = this->inputInfo.begin()->first;
-    auto firstInputBlob = inferRequest.GetBlob(firstInputName);
+    auto firstInputBlob = _backend->getBlob(picInputName);
 
     ImageDecoder decoder;
     while (iter != annCollector.annotations().end()) {
@@ -108,22 +115,28 @@ shared_ptr<Processor::InferenceMetrics> ObjectDetectionProcessor::Process(bool s
             expected[b] = *iter;
             string filename = iter->folder + "/" + (!subdir.empty() ? subdir + "/" : "") + iter->filename;
             try {
-                Size orig_size = decoder.insertIntoBlob(std::string(imagesPath) + "/" + filename, b, *firstInputBlob, preprocessingOptions);
+                Size orig_size = decoder.insertIntoBlob(std::string(imagesPath) + "/" + filename, b, firstInputBlob, preprocessingOptions);
                 float scale_x, scale_y;
 
                 scale_x = 1.0f / iter->size.width;  // orig_size.width;
                 scale_y = 1.0f / iter->size.height;  // orig_size.height;
 
                 if (scaleProposalToInputSize) {
-                    scale_x *= firstInputBlob->getTensorDesc().getDims()[3];
-                    scale_y *= firstInputBlob->getTensorDesc().getDims()[2];
+                    // looking for the channel axis
+                    if (firstInputBlob->_shape[1] == 3) {
+                        scale_x *= firstInputBlob->_shape[3];
+                        scale_y *= firstInputBlob->_shape[2];
+                    } else if (firstInputBlob->_shape[3] == 3) {
+                        scale_x *= firstInputBlob->_shape[2];
+                        scale_y *= firstInputBlob->_shape[1];
+                    }
                 }
 
                 // Scaling the desired result (taken from the annotation) to the network size
                 scaledDesiredForFiles.insert(std::pair<std::string, ImageDescription>(filename, desiredForFiles.at(filename).scale(scale_x, scale_y)));
 
                 files.push_back(filename);
-            } catch (const InferenceEngineException& iex) {
+            } catch (const std::exception& iex) {
                 slog::warn << "Can't read file " << this->imagesPath + "/" + filename << slog::endl;
                 slog::warn << "Error: " << iex.what() << slog::endl;
                 // Could be some non-image file in directory
@@ -138,6 +151,13 @@ shared_ptr<Processor::InferenceMetrics> ObjectDetectionProcessor::Process(bool s
 
             // Processing the inference result
             std::map<std::string, std::list<DetectedObject>> detectedObjects = processResult(files);
+
+            for (auto f : detectedObjects) {
+                for (auto o : f.second) {
+                    dumper << f.first << o.objectType << o.ymin << o.xmin << o.ymax << o.xmax << o.prob;
+                    dumper.endLine();
+                }
+            }
 
             // Calculating similarity
             //

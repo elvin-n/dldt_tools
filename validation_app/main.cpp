@@ -19,6 +19,7 @@
 #include <limits>
 #include <iomanip>
 #include <memory>
+#include <dlfcn.h>
 
 #include <samples/common.hpp>
 #include <samples/slog.hpp>
@@ -27,14 +28,16 @@
 #include "ClassificationProcessor.hpp"
 #include "SSDObjectDetectionProcessor.hpp"
 #include "YOLOObjectDetectionProcessor.hpp"
+#include "backend.hpp"
+
+
+typedef Backend*(*createBackend)();
 
 using namespace std;
-using namespace InferenceEngine;
-
-using InferenceEngine::details::InferenceEngineException;
 
 /// @brief Message for help argument
 static const char help_message[] = "Print a help message";
+static const char backend_message[] = "Required. Defines a backend which will perform inference of the neural network";
 /// @brief Message for images argument
 static const char image_message[] = "Required. Folder with validation images. Path to a directory with validation images. For Classification models,"
                                     " the directory must contain folders named as labels with images inside or a .txt file with"
@@ -103,8 +106,12 @@ static const char* types_descriptions[][2] = {
     { nullptr, nullptr }
 };
 
+
 /// @brief Define flag for showing help message <br>
 DEFINE_bool(h, false, help_message);
+/// @brief Define parameter for backend to use for inference of the model <br>
+/// It is a required parameter
+DEFINE_string(backend, "", backend_message);
 /// @brief Define parameter for a path to images <br>
 /// It is a required parameter
 DEFINE_string(i, "", image_message);
@@ -171,6 +178,7 @@ static void showUsage() {
     std::cout << "Available options:" << std::endl;
     std::cout << std::endl;
     std::cout << "    -h                        " << help_message << std::endl;
+    std::cout << "    -backend                  " << backend_message << std::endl;
     std::cout << "    -t <type>                 " << type_message << std::endl;
     for (int i = 0; types_descriptions[i][0] != nullptr; i++) {
         std::cout << "      -t \"" << types_descriptions[i][0] << "\" for " << types_descriptions[i][1] << std::endl;
@@ -220,8 +228,6 @@ std::string strtolower(const std::string& s) {
  */
 int main(int argc, char *argv[]) {
     try {
-        slog::info << "InferenceEngine: " << GetInferenceEngineVersion() << slog::endl;
-
         // ---------------------------Parsing and validating input arguments--------------------------------------
         slog::info << "Parsing input parameters" << slog::endl;
 
@@ -234,6 +240,22 @@ int main(int argc, char *argv[]) {
         }
 
         UserExceptions ee;
+
+        // try to load backend
+        std::string libName = std::string("lib") + FLAGS_backend.c_str() + ".so";
+        void *shared_object = dlopen(libName.c_str(), RTLD_LAZY);
+        if (!shared_object) {
+            THROW_USER_EXCEPTION(2) << "Cannot open '" << libName  << "' library" << dlerror();
+        }
+        // void* procAddr = nullptr;
+        Backend* (*createBackend)() = (Backend * (*)())dlsym(shared_object, "createBackend");
+        if (createBackend == nullptr)
+            THROW_USER_EXCEPTION(2) << "dlSym cannot locate method 'createBackend': " << dlerror();
+        Backend* backend = createBackend();
+        if (!backend) {
+            THROW_USER_EXCEPTION(2) << "Cannot create inference backend" << dlerror();
+        }
+
 
         NetworkType netType = Undefined;
         // Checking the network type
@@ -259,20 +281,20 @@ int main(int argc, char *argv[]) {
 
         if (!ee.empty()) throw ee;
         // -----------------------------------------------------------------------------------------------------
-        Core ie;
 
-        if (!FLAGS_l.empty()) {
-            // CPU(MKLDNN) extensions are loaded as a shared library and passed as a pointer to base extension
-            IExtensionPtr extension_ptr = make_so_pointer<IExtension>(FLAGS_l);
-            ie.AddExtension(extension_ptr, "CPU");
-            slog::info << "CPU Extension loaded: " << FLAGS_l << slog::endl;
-        }
+        // TODO(amalyshe) evaluate what we can do with extensions
+        //if (!FLAGS_l.empty()) {
+        //    // CPU(MKLDNN) extensions are loaded as a shared library and passed as a pointer to base extension
+        //    IExtensionPtr extension_ptr = make_so_pointer<IExtension>(FLAGS_l);
+        //    ie.AddExtension(extension_ptr, "CPU");
+        //    slog::info << "CPU Extension loaded: " << FLAGS_l << slog::endl;
+        //}
 
-        if (!FLAGS_c.empty()) {
-            // clDNN Extensions are loaded from an .xml description and OpenCL kernel files
-            ie.SetConfig({ { PluginConfigParams::KEY_CONFIG_FILE, FLAGS_c } }, "GPU");
-            slog::info << "GPU Extension loaded: " << FLAGS_c << slog::endl;
-        }
+        //if (!FLAGS_c.empty()) {
+        //    // clDNN Extensions are loaded from an .xml description and OpenCL kernel files
+        //    ie.SetConfig({ { PluginConfigParams::KEY_CONFIG_FILE, FLAGS_c } }, "GPU");
+        //    slog::info << "GPU Extension loaded: " << FLAGS_c << slog::endl;
+        //}
 
         CsvDumper dumper(FLAGS_dump);
 
@@ -301,17 +323,23 @@ int main(int argc, char *argv[]) {
 
         if (netType == Classification) {
             processor = std::shared_ptr<Processor>(
-                    new ClassificationProcessor(FLAGS_m, FLAGS_d, FLAGS_i, FLAGS_b,
-                                                ie, dumper, FLAGS_lbl, preprocessingOptions, FLAGS_Czb));
+                new ClassificationProcessor(backend, FLAGS_m, {}, FLAGS_d, FLAGS_i, FLAGS_b,
+                                                dumper, FLAGS_lbl, preprocessingOptions, FLAGS_Czb));
         } else if (netType == ObjDetection) {
             if (FLAGS_ODkind == "SSD") {
+                // work around for object detection models from tensorflow
+                std::vector<std::string> outputs;
+                if (FLAGS_backend == "snpe_backend") {
+                    outputs.push_back("add");
+                    outputs.push_back("Postprocessor/BatchMultiClassNonMaxSuppression");
+                }
                 processor = std::shared_ptr<Processor>(
-                        new SSDObjectDetectionProcessor(FLAGS_m, FLAGS_d, FLAGS_i, FLAGS_ODsubdir, FLAGS_b,
-                                                        0.5, ie, dumper, FLAGS_ODa, FLAGS_ODc));
+                    new SSDObjectDetectionProcessor(backend, FLAGS_m, outputs, FLAGS_d, FLAGS_i, FLAGS_ODsubdir, FLAGS_b,
+                                                        0.5, dumper, FLAGS_ODa, FLAGS_ODc));
             } else if (FLAGS_ODkind == "YOLO") {
                 processor = std::shared_ptr<Processor>(
-                        new YOLOObjectDetectionProcessor(FLAGS_m, FLAGS_d, FLAGS_i, FLAGS_ODsubdir, FLAGS_b,
-                                                         0.5, ie, dumper, FLAGS_ODa, FLAGS_ODc));
+                    new YOLOObjectDetectionProcessor(backend, FLAGS_m, { }, FLAGS_d, FLAGS_i, FLAGS_ODsubdir, FLAGS_b,
+                                                         0.5, dumper, FLAGS_ODa, FLAGS_ODc));
             }
         } else {
             THROW_USER_EXCEPTION(2) <<  "Unknown network type specified" << FLAGS_ppType;
@@ -326,13 +354,6 @@ int main(int argc, char *argv[]) {
         if (dumper.dumpEnabled()) {
             slog::info << "Dump file generated: " << dumper.getFilename() << slog::endl;
         }
-    } catch (const InferenceEngineException& ex) {
-        slog::err << "Inference problem: \n" << ex.what() << slog::endl;
-        return 1;
-    } catch (const UserException& ex) {
-        slog::err << "Input problem: \n" << ex.what() << slog::endl;
-        showUsage();
-        return ex.exitCode();
     } catch (const UserExceptions& ex) {
         if (ex.list().size() == 1) {
             slog::err << "Input problem: " << ex.what() << slog::endl;

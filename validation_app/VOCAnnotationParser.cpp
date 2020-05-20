@@ -44,20 +44,16 @@ bool VOCAnnotationParser::parseBool(const pugi::xml_node& node, bool def) {
 VOCAnnotation VOCAnnotationParser::parse(const std::string& filename) {
     using namespace pugi;
     xml_document doc;
-
     xml_parse_result result = doc.load_file(filename.c_str());
-
     if (result.status != pugi::status_ok) {
         throw UserException(result.status)
                 << "parsing failed at offset " << result.offset << ": " << result.description();
     }
-
     xml_node annNode = doc.child("annotation");
     if (!annNode) {
         THROW_USER_EXCEPTION(1) << "No root <annotation> tag";
     }
     VOCAnnotation ann;
-
     try {
         ann.filename = parseString(annNode.child("filename"));
         ann.folder = parseString(annNode.child("folder"));
@@ -72,7 +68,6 @@ VOCAnnotation VOCAnnotationParser::parse(const std::string& filename) {
         ann.source.annotation = parseString(sourceNode.child("annotation"));
         ann.source.database = parseString(sourceNode.child("database"));
         ann.source.image = parseString(sourceNode.child("image"));
-
 
         for (xml_node objNode = annNode.child("object"); objNode; objNode = objNode.next_sibling("object")) {
             VOCObject obj;
@@ -94,7 +89,6 @@ VOCAnnotation VOCAnnotationParser::parse(const std::string& filename) {
     catch (const std::invalid_argument& e) {
         THROW_USER_EXCEPTION(1) << "conversion error: " << e.what();
     }
-
     return ann;
 }
 

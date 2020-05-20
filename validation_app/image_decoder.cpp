@@ -5,7 +5,7 @@
 #include <utility>
 
 #include "image_decoder.hpp"
-#include "details/ie_exception.hpp"
+#include "user_exception.hpp"
 #include <vector>
 #include <string>
 #include <map>
@@ -27,12 +27,12 @@ int getLoadModeForChannels(int channels, int base) {
 }
 
 template <class T>
-cv::Size addToBlob(std::string name, int batch_pos, Blob& blob, PreprocessingOptions preprocessingOptions) {
-    SizeVector blobSize = blob.getTensorDesc().getDims();
-    int width = static_cast<int>(blobSize[3]);
-    int height = static_cast<int>(blobSize[2]);
-    int channels = static_cast<int>(blobSize[1]);
-    T* blob_data = static_cast<T*>(blob.buffer());
+cv::Size addToBlob(std::string name, int batch_pos, VBlob* blob, PreprocessingOptions preprocessingOptions) {
+    VShape blobSize = blob->_shape;
+    int width = blob->_layout == "NCHW" ? static_cast<int>(blobSize[3]) : static_cast<int>(blobSize[2]);
+    int height = blob->_layout == "NCHW" ? static_cast<int>(blobSize[2]) : static_cast<int>(blobSize[1]);
+    int channels = blob->_layout == "NCHW" ? static_cast<int>(blobSize[1]) : static_cast<int>(blobSize[3]);
+    T* blob_data = static_cast<T*>(blob->_data);
     Mat orig_image, result_image;
     int loadMode = getLoadModeForChannels(channels, 0);
 
@@ -45,7 +45,7 @@ cv::Size addToBlob(std::string name, int batch_pos, Blob& blob, PreprocessingOpt
     orig_image = imread(tryName, loadMode);
 
     if (orig_image.empty()) {
-        THROW_IE_EXCEPTION << "Cannot open image file: " << tryName;
+        THROW_USER_EXCEPTION(1) << "Cannot open image file: " << tryName;
     }
 
     // Preprocessing the image
@@ -67,16 +67,38 @@ cv::Size addToBlob(std::string name, int batch_pos, Blob& blob, PreprocessingOpt
         // No image preprocessing to be done here
         result_image = orig_image;
     } else {
-        THROW_IE_EXCEPTION << "Unsupported ResizeCropPolicy value";
+        THROW_USER_EXCEPTION(1) << "Unsupported ResizeCropPolicy value";
     }
 
     float scaleFactor = preprocessingOptions.scaleValuesTo01 ? 255.0f : 1.0f;
 
-    for (int c = 0; c < channels; c++) {
-        for (int h = 0; h < height; h++) {
-            for (int w = 0; w < width; w++) {
-                blob_data[batch_pos * channels * width * height + c * width * height + h * width + w] =
-                    static_cast<T>(result_image.at<cv::Vec3b>(h, w)[c] / scaleFactor);
+    if (blob->_layout == "NCHW") {
+        for (int c = 0; c < channels; c++) {
+            for (int h = 0; h < height; h++) {
+                for (int w = 0; w < width; w++) {
+                    blob_data[batch_pos * channels * width * height + c * width * height + h * width + w] =
+                        static_cast<T>(result_image.at<cv::Vec3b>(h, w)[c] / scaleFactor);
+                }
+            }
+        }
+    } else if (blob->_layout == "NHWC") {
+        size_t nielements = width * height * channels;
+        if (blob->_precision == FP32) {
+            for (size_t i = 0; i < nielements; i++) {
+                blob_data[i] = (static_cast<float>(result_image.data[i]) - 128.f )/ 127.f;
+            }
+            if (blob->_colourFormat == "RGB") {
+                for (size_t i = 0; i < nielements; i += channels) {
+                    float tmp = blob_data[i];
+                    blob_data[i] = blob_data[i + 2];
+                    blob_data[i + 2] = tmp;
+                }
+            }
+        } else if (blob->_precision == U8) {
+            for (size_t i = 0; i < nielements; i += 3) {
+                blob_data[i] = result_image.data[i + 2];
+                blob_data[i+1] = result_image.data[i + 1];
+                blob_data[i+2] = result_image.data[i];
             }
         }
     }
@@ -84,21 +106,21 @@ cv::Size addToBlob(std::string name, int batch_pos, Blob& blob, PreprocessingOpt
     return res;
 }
 
-std::map<std::string, cv::Size> convertToBlob(std::vector<std::string> names, int batch_pos, Blob& blob, PreprocessingOptions preprocessingOptions) {
-    if (blob.buffer() == nullptr) {
-        THROW_IE_EXCEPTION << "Blob was not allocated";
+std::map<std::string, cv::Size> convertToBlob(std::vector<std::string> names, int batch_pos, VBlob* blob, PreprocessingOptions preprocessingOptions) {
+    if (blob->_data == nullptr) {
+        THROW_USER_EXCEPTION(1) << "Blob was not allocated";
     }
 
-    std::function<cv::Size(std::string, int, Blob&, PreprocessingOptions)> add_func;
+    std::function<cv::Size(std::string, int, VBlob*, PreprocessingOptions)> add_func;
 
-    switch (blob.getTensorDesc().getPrecision()) {
-    case Precision::FP32:
+    switch (blob->_precision) {
+    case FP32:
         add_func = &addToBlob<float>;
         break;
-    case Precision::FP16:
-    case Precision::Q78:
-    case Precision::I16:
-    case Precision::U16:
+    case FP16:
+    case Q78:
+    case I16:
+    case U16:
         add_func = &addToBlob<short>;
         break;
     default:
@@ -115,15 +137,15 @@ std::map<std::string, cv::Size> convertToBlob(std::vector<std::string> names, in
     return res;
 }
 
-Size ImageDecoder::loadToBlob(std::string name, Blob& blob, PreprocessingOptions preprocessingOptions) {
+Size ImageDecoder::loadToBlob(std::string name, std::shared_ptr<VBlob> blob, PreprocessingOptions preprocessingOptions) {
     std::vector<std::string> names = { name };
     return loadToBlob(names, blob, preprocessingOptions).at(name);
 }
 
-std::map<std::string, cv::Size> ImageDecoder::loadToBlob(std::vector<std::string> names, Blob& blob, PreprocessingOptions preprocessingOptions) {
-    return convertToBlob(names, 0, blob, preprocessingOptions);
+std::map<std::string, cv::Size> ImageDecoder::loadToBlob(std::vector<std::string> names, std::shared_ptr<VBlob> blob, PreprocessingOptions preprocessingOptions) {
+    return convertToBlob(names, 0, blob.get(), preprocessingOptions);
 }
 
-Size ImageDecoder::insertIntoBlob(std::string name, int batch_pos, Blob& blob, PreprocessingOptions preprocessingOptions) {
-    return convertToBlob({ name }, batch_pos, blob, preprocessingOptions).at(name);
+Size ImageDecoder::insertIntoBlob(std::string name, int batch_pos, std::shared_ptr<VBlob> blob, PreprocessingOptions preprocessingOptions) {
+    return convertToBlob({ name }, batch_pos, blob.get(), preprocessingOptions).at(name);
 }

@@ -818,26 +818,63 @@
                 <F N="../validation_app/pugixml/pugixml.hpp"/>
                 <F N="../validation_app/pugixml/pugiconfig.hpp"/>
             </Folder>
-            <F N="../validation_app/main.cpp"/>
-            <F N="../validation_app/classification_set_generator.hpp"/>
-            <F N="../validation_app/SSDObjectDetectionProcessor.hpp"/>
-            <F N="../validation_app/ObjectDetectionProcessor.hpp"/>
-            <F N="../validation_app/VOCAnnotationParser.hpp"/>
-            <F N="../validation_app/Processor.hpp"/>
-            <F N="../validation_app/YOLOObjectDetectionProcessor.hpp"/>
-            <F N="../validation_app/ClassificationProcessor.cpp"/>
-            <F N="../validation_app/image_decoder.cpp"/>
-            <F N="../validation_app/VOCAnnotationParser.cpp"/>
-            <F N="../validation_app/CMakeLists.txt"/>
-            <F N="../validation_app/PreprocessingOptions.hpp"/>
-            <F N="../validation_app/user_exception.hpp"/>
-            <F N="../validation_app/ObjectDetectionProcessor.cpp"/>
+            <F N="../validation_app/backend.hpp"/>
             <F N="../validation_app/classification_set_generator.cpp"/>
-            <F N="../validation_app/README.md"/>
-            <F N="../validation_app/Processor.cpp"/>
+            <F N="../validation_app/classification_set_generator.hpp"/>
+            <F N="../validation_app/ClassificationProcessor.cpp"/>
             <F N="../validation_app/ClassificationProcessor.hpp"/>
-            <F N="../validation_app/.SSDObjectDetectionProcessor.hpp.swp"/>
+            <F N="../validation_app/CMakeLists.txt"/>
+            <F N="../validation_app/image_decoder.cpp"/>
             <F N="../validation_app/image_decoder.hpp"/>
+            <F N="../validation_app/main.cpp"/>
+            <F N="../validation_app/ObjectDetectionProcessor.cpp"/>
+            <F N="../validation_app/ObjectDetectionProcessor.hpp"/>
+            <F N="../validation_app/PreprocessingOptions.hpp"/>
+            <F N="../validation_app/Processor.cpp"/>
+            <F N="../validation_app/Processor.hpp"/>
+            <F N="../validation_app/README.md"/>
+            <F N="../validation_app/SSDObjectDetectionProcessor.hpp"/>
+            <F N="../validation_app/user_exception.hpp"/>
+            <F N="../validation_app/VOCAnnotationParser.cpp"/>
+            <F N="../validation_app/VOCAnnotationParser.hpp"/>
+            <F N="../validation_app/YOLOObjectDetectionProcessor.hpp"/>
+        </Folder>
+        <Folder
+            Name="ie_backend"
+            Filters=""
+            GUID="{895F6F72-CCC2-4251-B591-E066F6E37609}">
+            <F N="../ie_backend/CMakeLists.txt"/>
+            <F N="../ie_backend/ie_backend.cpp"/>
+            <F N="../ie_backend/ie_backend.hpp"/>
+        </Folder>
+        <Folder
+            Name="snpe_backend"
+            Filters=""
+            GUID="{F157E31B-DE8C-4FE1-8257-1DDBD6220045}">
+            <F N="../snpe_backend/CMakeLists.txt"/>
+            <F N="../snpe_backend/snpe_backend.cpp"/>
+            <F N="../snpe_backend/snpe_backend.hpp"/>
+        </Folder>
+        <Folder
+            Name="snpe_object_detection_ssd"
+            Filters=""
+            GUID="{0AF7DFCD-0A9C-4601-9631-621FE37F9754}">
+            <F N="../snpe_samples/snpe_object_detection_ssd/CMakeLists.txt"/>
+            <F N="../snpe_samples/snpe_object_detection_ssd/main.cpp"/>
+            <F N="../snpe_samples/snpe_object_detection_ssd/object_detection_sample_ssd.h"/>
+            <F N="../snpe_samples/snpe_object_detection_ssd/README.md"/>
+        </Folder>
+        <Folder
+            Name="snpe_samples"
+            Filters=""
+            GUID="{5DCF1ED4-C8FB-4A02-A266-590EF5D15188}">
+            <Folder
+                Name="snpe_hello_classification"
+                Filters=""
+                GUID="{D8B3B45A-BF4C-42EC-BC5E-498CF36D8939}">
+                <F N="../snpe_samples/snpe_hello_classification/CMakeLists.txt"/>
+                <F N="../snpe_samples/snpe_hello_classification/main.cpp"/>
+            </Folder>
         </Folder>
         <F N="../build.sh"/>
         <F N="../CMakeLists.txt"/>

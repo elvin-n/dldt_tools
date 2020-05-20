@@ -12,12 +12,11 @@
 
 #include <string>
 #include <vector>
-#include "ie_blob.h"
 
 #include "PreprocessingOptions.hpp"
+#include "backend.hpp"
 
 using namespace cv;
-using namespace InferenceEngine;
 
 class ImageDecoder {
 public:
@@ -27,7 +26,7 @@ public:
      * @param blob - blob object to load image data to
      * @return original image sizes
      */
-    Size loadToBlob(std::string name, Blob& blob, PreprocessingOptions preprocessingOptions);
+    Size loadToBlob(std::string name, std::shared_ptr<VBlob> blob, PreprocessingOptions preprocessingOptions);
 
     /**
      * @brief Load a list of images to blob
@@ -35,7 +34,7 @@ public:
      * @param blob - blob object to load images data to
      * @return original image size
      */
-    std::map<std::string, cv::Size> loadToBlob(std::vector<std::string> names, Blob& blob, PreprocessingOptions preprocessingOptions);
+    std::map<std::string, cv::Size> loadToBlob(std::vector<std::string> names, std::shared_ptr<VBlob> blob, PreprocessingOptions preprocessingOptions);
 
     /**
      * @brief Insert image data to blob at specified batch position.
@@ -45,5 +44,5 @@ public:
      * @param blob - blob object to load image data to
      * @return original image size
      */
-    Size insertIntoBlob(std::string name, int batch_pos, Blob& blob, PreprocessingOptions preprocessingOptions);
+    Size insertIntoBlob(std::string name, int batch_pos, std::shared_ptr<VBlob> blob, PreprocessingOptions preprocessingOptions);
 };
