@@ -1,0 +1,155 @@
+<!DOCTYPE Project SYSTEM "http://www.slickedit.com/dtd/vse/10.0/vpj.dtd">
+<Project
+    Version="10.0"
+    VendorName="SlickEdit"
+    TemplateName="Other C/C++"
+    WorkingDir=".">
+    <Config
+        Name="Debug"
+        Type="cpp"
+        DebugCallbackName="gdb"
+        OutputFile="%bdsnpe_hello_classification"
+        CompilerConfigName="Latest Version">
+        <Menu>
+            <Target
+                Name="Compile"
+                MenuCaption="&amp;Compile"
+                CaptureOutputWith="ProcessBuffer"
+                OutputExts="*.o"
+                SaveOption="SaveCurrent"
+                RunFromDir="%rw">
+                <Exec CmdLine='cc -c -g %i %defd -o "%bd%n.o" "%f"'/>
+            </Target>
+            <Target
+                Name="Link"
+                MenuCaption="&amp;Link">
+                <Exec CmdLine='cc -g -o "%o" %f %libs'/>
+            </Target>
+            <Target
+                Name="Build"
+                MenuCaption="&amp;Build"
+                CaptureOutputWith="ProcessBuffer"
+                SaveOption="SaveWorkspaceFiles"
+                RunFromDir="%rw//build_debug_x86">
+                <Exec CmdLine="make"/>
+            </Target>
+            <Target
+                Name="Rebuild"
+                MenuCaption="&amp;Rebuild"
+                CaptureOutputWith="ProcessBuffer"
+                SaveOption="SaveWorkspaceFiles"
+                RunFromDir="%rw">
+                <Exec CmdLine='"%(VSLICKBIN1)vsbuild" rebuild "%w" "%r"'/>
+            </Target>
+            <Target
+                Name="Debug"
+                MenuCaption="&amp;Debug"
+                SaveOption="SaveNone"
+                BuildFirst="1"
+                CaptureOutputWith="ProcessBuffer"
+                RunFromDir="%rw/build_debug_x86">
+                <Exec CmdLine='"%(VSLICKBIN1)vsdebugio" -port 8001 -prog snpe_hello_classification /home/amalyshe/sandboxes/2020_05_retailnext/snpe-1.36.0.746/models/inception_v3/tensorflow/inception_v3_2016_08_28_frozen.dlc /home/amalyshe/sandboxes/datasets/Imagenet/ILSVRC2012_val_00000001.JPEG cpu'/>
+            </Target>
+            <Target
+                Name="Execute"
+                MenuCaption="E&amp;xecute"
+                SaveOption="SaveNone"
+                BuildFirst="1"
+                CaptureOutputWith="ProcessBuffer"
+                RunFromDir="%rw/build_debug_x86">
+                <Exec CmdLine="snpe_hello_classification /home/amalyshe/sandboxes/2020_05_retailnext/snpe-1.36.0.746/models/inception_v3/tensorflow/inception_v3_2016_08_28_frozen.dlc /home/amalyshe/sandboxes/datasets/Imagenet/ILSVRC2012_val_00000001.JPEG cpu"/>
+            </Target>
+        </Menu>
+    </Config>
+    <Config
+        Name="Release"
+        Type="cpp"
+        DebugCallbackName="gdb"
+        OutputFile="%bdsnpe_hello_classification"
+        CompilerConfigName="Latest Version">
+        <Menu>
+            <Target
+                Name="Compile"
+                MenuCaption="&amp;Compile"
+                CaptureOutputWith="ProcessBuffer"
+                SaveOption="SaveCurrent"
+                OutputExts="*.o"
+                RunFromDir="%rw">
+                <Exec CmdLine='cc -c -O %i %defd -o "%bd%n.o" "%f"'/>
+            </Target>
+            <Target
+                Name="Link"
+                MenuCaption="&amp;Link">
+                <Exec CmdLine='cc -O -o "%o" %f %libs'/>
+            </Target>
+            <Target
+                Name="Build"
+                MenuCaption="&amp;Build"
+                CaptureOutputWith="ProcessBuffer"
+                SaveOption="SaveWorkspaceFiles"
+                RunFromDir="%rw//build_debug_x86">
+                <Exec CmdLine="make"/>
+            </Target>
+            <Target
+                Name="Rebuild"
+                MenuCaption="&amp;Rebuild"
+                CaptureOutputWith="ProcessBuffer"
+                SaveOption="SaveWorkspaceFiles"
+                RunFromDir="%rw">
+                <Exec CmdLine='"%(VSLICKBIN1)vsbuild" rebuild "%w" "%r"'/>
+            </Target>
+            <Target
+                Name="Debug"
+                MenuCaption="&amp;Debug"
+                SaveOption="SaveNone"
+                BuildFirst="1"
+                CaptureOutputWith="ProcessBuffer"
+                RunFromDir="%rw/build_debug_x86">
+                <Exec CmdLine='"%(VSLICKBIN1)vsdebugio" -port 8001 -prog snpe_hello_classification /home/amalyshe/sandboxes/2020_05_retailnext/snpe-1.36.0.746/models/inception_v3/tensorflow/inception_v3_2016_08_28_frozen.dlc /home/amalyshe/sandboxes/datasets/Imagenet/ILSVRC2012_val_00000001.JPEG cpu'/>
+            </Target>
+            <Target
+                Name="Execute"
+                MenuCaption="E&amp;xecute"
+                SaveOption="SaveNone"
+                BuildFirst="1"
+                CaptureOutputWith="ProcessBuffer"
+                RunFromDir="%rw/build_debug_x86">
+                <Exec CmdLine="snpe_hello_classification /home/amalyshe/sandboxes/2020_05_retailnext/snpe-1.36.0.746/models/inception_v3/tensorflow/inception_v3_2016_08_28_frozen.dlc /home/amalyshe/sandboxes/datasets/Imagenet/ILSVRC2012_val_00000001.JPEG cpu"/>
+            </Target>
+        </Menu>
+    </Config>
+    <Rules Name="Compile">
+        <Rule
+            InputExts="*.s"
+            OutputExts="*.o"
+            LinkObject="1">
+            <Exec CmdLine='as -o "%bd%n.o" "%f"'/>
+        </Rule>
+    </Rules>
+    <Files>
+        <Folder
+            Name="Source Files"
+            Filters="*.c;*.C;*.cc;*.cpp;*.cp;*.cxx;*.c++;*.prg;*.pas;*.dpr;*.asm;*.s;*.bas;*.java;*.cs;*.sc;*.scala;*.e;*.cob;*.html;*.rc;*.tcl;*.py;*.pl;*.d;*.m;*.mm;*.go;*.groovy;*.gsh"
+            GUID="{7FAC905B-81BA-4EF5-9756-C724FF6A64D1}">
+            <F N="main.cpp"/>
+        </Folder>
+        <Folder
+            Name="Header Files"
+            Filters="*.h;*.H;*.hh;*.hpp;*.hxx;*.h++;*.inc;*.sh;*.cpy;*.if"
+            GUID="{EBF49178-6273-44D4-950A-E4E8CC26230D}"/>
+        <Folder
+            Name="Resource Files"
+            Filters="*.ico;*.cur;*.dlg"
+            GUID="{F2EC7DEB-5001-4614-86DD-BBEA1F66D386}"/>
+        <Folder
+            Name="Bitmaps"
+            Filters="*.bmp"
+            GUID="{905121E9-7016-470E-A73C-D0CFDCEBB770}"/>
+        <Folder
+            Name="Other Files"
+            Filters=""
+            GUID="{C9458579-F8A1-4760-9425-5C3CAE4A41F0}">
+            <F N="CMakeLists.txt"/>
+        </Folder>
+    </Files>
+</Project>
