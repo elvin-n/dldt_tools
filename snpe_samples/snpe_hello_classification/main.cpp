@@ -66,11 +66,11 @@ int wmain(int argc, wchar_t *argv[]) {
 
         // --------------------------- 2. Loading model to the device ------------------------------------------
         zdl::DlSystem::Runtime_t runtime = zdl::DlSystem::Runtime_t::CPU;
-        if (device_name == "gpu") {
+        if (device_name == "GPU") {
             runtime = zdl::DlSystem::Runtime_t::GPU;
-        } else if (device_name == "dsp") {
+        } else if (device_name == "DSP") {
             runtime = zdl::DlSystem::Runtime_t::DSP;
-        } else if (device_name == "cpu") {
+        } else if (device_name == "CPU") {
             runtime = zdl::DlSystem::Runtime_t::CPU;
         } else {
            std::cerr << "The device is not valid. Set default CPU runtime." << std::endl;
@@ -86,8 +86,7 @@ int wmain(int argc, wchar_t *argv[]) {
             runtimeList.add(runtime);
         }
 
-        snpe = snpeBuilder.setOutputLayers({})
-           .setRuntimeProcessorOrder(runtimeList)
+        snpe = snpeBuilder.setRuntimeProcessorOrder(runtimeList)
         // .setUseUserSuppliedBuffers(true) TODO (amalyshe) to clarify what this option means
            .build();
 
@@ -103,7 +102,7 @@ int wmain(int argc, wchar_t *argv[]) {
 
         // --------------------------- 3. Prepare input --------------------------------------------------------
         zdl::DlSystem::UserBufferMap inputMap, outputMap;
-        zdl::DlSystem::TensorMap outputTensorMap;
+        zdl::DlSystem::TensorMap inputTensorMap, outputTensorMap;
         std::vector<std::unique_ptr<zdl::DlSystem::IUserBuffer>> snpeUserBackedInputBuffers, snpeUserBackedOutputBuffers;
         std::unordered_map<std::string, std::vector<uint8_t>> applicationOutputBuffers;
 
@@ -113,6 +112,14 @@ int wmain(int argc, wchar_t *argv[]) {
             std::cerr << "Input layer expect data having " << iTShape.rank() << " dimensions shape, while we expect 4" << std::endl;
             return EXIT_FAILURE;
         }
+
+        // Note that nput dimensions are embedded into DLC model during conversion,
+        // but in some cases can be overridden via SNPEBuilder::setInputDimensions()
+        // (see description in C++ API) at SNPE object creation/build time.
+        //
+        // FOR SSD:  Due to PriorBox layer folding in the model converter, input/network
+        // resizing is not possible.
+
         const zdl::DlSystem::Dimension *shapes = iTShape.getDimensions();
         std::cout << "Input Shape (" << shapes[0] << "," << shapes[1] << "," << shapes[2] << "," << shapes[3] << ")" << std::endl;
 
@@ -126,29 +133,35 @@ int wmain(int argc, wchar_t *argv[]) {
         std::cout << "Resized image parameters: Channels=" << resized_image.channels()<< ", width=" << resized_image.cols <<
         ", height=" << resized_image.rows << std::endl;
         Time::time_point time5 = Time::now();
-        // Create input tensor on top of existing Mat - CORRECTION - impossible as is since ITensor is assumed by default to be
-        // flaoting point one, while cvMat wouold be UINT8
-
-        // Option 1: To create a floating number buffer in my space, copy data from cvMat, create ITensor on top of this buffer
-        // and verify if data is copied or reused by ITensor
-        size_t nielements = shapes[1] * shapes[2] * shapes[3];
-        float *dummy = new float[nielements];
-        for (size_t i = 0; i < nielements; i++) {
-            dummy[i] = resized_image.data[i];
-        }
+        std::unique_ptr<zdl::DlSystem::ITensor> inputTensor =
+            zdl::SNPE::SNPEFactory::getTensorFactory().createTensor(snpe->getInputDimensions());
 
         Time::time_point time6 = Time::now();
-        std::unique_ptr<zdl::DlSystem::ITensor> inputTensor =
-            zdl::SNPE::SNPEFactory::getTensorFactory().createTensor(snpe->getInputDimensions(),
-                                                                    reinterpret_cast<const unsigned char *>(dummy),
-                                                                    nielements * sizeof(float));
-        Time::time_point time7 = Time::now();
         zdl::DlSystem::ITensor *t = inputTensor.get();
         if (!inputTensor.get()) {
             std::cerr << "Could not create SNPE input tensor" << std::endl;
             return EXIT_FAILURE;
         }
 
+
+        // Follow copying of image is not optimal since it happens in two passes
+        float *tf = reinterpret_cast<float *>(&(*inputTensor->begin()));
+        size_t nielements = shapes[1] * shapes[2] * shapes[3];
+        for (size_t i = 0; i < nielements; i++) {
+            tf[i] = static_cast<float>(resized_image.data[i]) / 255.f;
+        }
+
+        // reorder from BGR to RGB:
+        // snpe-tensorflow-to-dlc has follow parameters --input_encoding "input" bgr --input_type "input" image
+        // unfortunately they do not work
+        // if they worked, I would not have such code here
+        for (size_t i = 0; i < nielements; i += shapes[3]) {
+            float tmp = tf[i];
+            tf[i] = tf[i + 2];
+            tf[i + 2] = tmp;
+        }
+
+        Time::time_point time7 = Time::now();
         // -----------------------------------------------------------------------------------------------------
 
         // --------------------------- 4. Do inference --------------------------------------------------------
@@ -178,8 +191,8 @@ int wmain(int argc, wchar_t *argv[]) {
             ordered[oData[j]] = j;
         }
 
-
         int s = 0;
+        std::cout << std::fixed << std::setprecision(5);
         for (auto it = ordered.crbegin(); it != ordered.crend() && s < 5; it++, s++) {
             std::cout << it->second << "    " << it->first << std::endl;
         }
@@ -193,7 +206,7 @@ int wmain(int argc, wchar_t *argv[]) {
         std::cout << "Load of the picture: " << std::chrono::duration_cast<ns>(time4 - time3).count() * 0.000001 << " ms" << std::endl;
         std::cout << "Resize of the picture: " << std::chrono::duration_cast<ns>(time5 - time4).count() * 0.000001 << " ms" << std::endl;
         std::cout << "Copying data from U8 to float array for input: " << std::chrono::duration_cast<ns>(time6 - time5).count() * 0.000001 << " ms" << std::endl;
-        std::cout << "Createo of the ITensor: " << std::chrono::duration_cast<ns>(time7 - time6).count() * 0.000001 << " ms" << std::endl;
+        std::cout << "Create of the ITensor: " << std::chrono::duration_cast<ns>(time7 - time6).count() * 0.000001 << " ms" << std::endl;
         std::cout << "Inference: " << std::chrono::duration_cast<ns>(time8 - time7).count() * 0.000001 << " ms" << std::endl;
         std::cout << "Post processing of output results: " << std::chrono::duration_cast<ns>(time9- time8).count() * 0.000001 << " ms" << std::endl;
         // -----------------------------------------------------------------------------------------------------

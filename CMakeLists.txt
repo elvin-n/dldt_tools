@@ -2,9 +2,13 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 2.8.12)
 
-project(Demos)
+if (POLICY CMP0048)
+  cmake_policy(SET CMP0048 NEW)
+endif (POLICY CMP0048)
+
+project(DLDT_Tools DESCRIPTION "Tools for DLDT and other inference engines like SNPE")
 
 if (CMAKE_BUILD_TYPE STREQUAL "")
     message(STATUS "CMAKE_BUILD_TYPE not defined, 'Release' will be used")
@@ -51,14 +55,20 @@ else ()
 endif()
 
 # use this flag if you need to throw custom message in case if the IE package is not found.
-if (IE_NOT_FOUND_MESSAGE)
-    find_package(InferenceEngine 2.1 QUIET)
-    if (NOT(InferenceEngine_FOUND))
-        message(FATAL_ERROR ${IE_NOT_FOUND_MESSAGE})
-    endif()
+find_package(InferenceEngine 2.1 QUIET)
+if (NOT DEFINED InferenceEngine_FOUND)
+    message(WARNING " Not found Intel OpenVINO, will ignore this flow")
 else()
-    find_package(InferenceEngine 2.1 REQUIRED)
+    message("Found Intel OpenVINO at ${InferenceEngine_INCLUDE_DIRS}")
 endif()
+
+set(SNPE_ROOT $ENV{SNPE_ROOT})
+if(NOT DEFINED SNPE_ROOT)
+  message(Warning " Not found SNPE, will ignore this flow")
+else()
+  message("Found SNPE at ${SNPE_ROOT}")
+endif()
+
 
 if (WIN32)
     if (NOT "${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
@@ -121,4 +131,15 @@ file(GLOB subdirs RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *)
 list(REMOVE_ITEM subdirs archived common thirdparty)
 
 add_subdirectory(validation_app)
-add_subdirectory(calibration_tool)
+if (DEFINED InferenceEngine_FOUND)
+  if(NOT DEFINED ANDROID_NATIVE_API_LEVEL)
+    # add_subdirectory(calibration_tool)
+    add_subdirectory(ie_backend)
+  endif()
+endif()
+
+if(DEFINED SNPE_ROOT)
+  add_subdirectory(snpe_samples/snpe_hello_classification)
+  add_subdirectory(snpe_samples/snpe_object_detection_ssd)
+  add_subdirectory(snpe_backend)
+endif()

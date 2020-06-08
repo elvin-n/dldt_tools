@@ -11,11 +11,10 @@
 
 #include <samples/common.hpp>
 
-#include "inference_engine.hpp"
-
 #include "samples/csv_dumper.hpp"
 #include "image_decoder.hpp"
 #include "samples/console_progress.hpp"
+#include "backend.hpp"
 
 using namespace std;
 
@@ -33,29 +32,28 @@ public:
     };
 
 protected:
+    Backend* _backend;
+    VInputInfo _inputInfo;
+    VOutputInfo _outputInfo;
+
+
     std::string modelFileName;
     std::string targetDevice;
     std::string imagesPath;
     size_t batch;
-    InferenceEngine::InferRequest inferRequest;
-    InferenceEngine::InputsDataMap inputInfo;
-    InferenceEngine::OutputsDataMap outInfo;
-    InferenceEngine::CNNNetReader networkReader;
-    InferenceEngine::SizeVector inputDims;
-    InferenceEngine::SizeVector outputDims;
+    VShape inputDims;
     double loadDuration;
     PreprocessingOptions preprocessingOptions;
 
     CsvDumper& dumper;
-    Core ie_;
 
     std::string approach;
 
     double Infer(ConsoleProgress& progress, int filesWatched, InferenceMetrics& im);
 
 public:
-    Processor(const std::string& flags_m, const std::string& flags_d, const std::string& flags_i, int flags_b,
-            InferenceEngine::Core ie, CsvDumper& dumper, const std::string& approach, PreprocessingOptions preprocessingOptions);
+    Processor(Backend *backend, const std::string &flags_m, const std::vector<std::string> &outputs, const std::string &flags_d, const std::string &flags_i, int flags_b,
+            CsvDumper& dumper, const std::string& approach, PreprocessingOptions preprocessingOptions);
 
     virtual shared_ptr<InferenceMetrics> Process(bool stream_output = false) = 0;
     virtual void Report(const InferenceMetrics& im) {
@@ -64,7 +62,6 @@ public:
         slog::info << "Inference report:\n";
         slog::info << "\tNetwork load time: " << loadDuration << "ms" << "\n";
         slog::info << "\tModel: " << modelFileName << "\n";
-        slog::info << "\tModel Precision: " << networkReader.getNetwork().getPrecision().name() << "\n";
         slog::info << "\tBatch size: " << batch << "\n";
         slog::info << "\tValidation dataset: " << imagesPath << "\n";
         slog::info << "\tValidation approach: " << approach;

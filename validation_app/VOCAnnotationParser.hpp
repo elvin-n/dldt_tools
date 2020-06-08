@@ -10,7 +10,6 @@
 #include <string>
 #include <vector>
 
-#pragma pack(1)
 struct VOCBoundingBox {
     int xmin, xmax, ymin, ymax;
 };
@@ -42,7 +41,6 @@ struct VOCAnnotation {
         std::string image;
     } source;
 };
-#pragma pack()
 
 class VOCAnnotationParser {
 private:

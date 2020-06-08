@@ -97,9 +97,9 @@ protected:
     std::map<std::string, std::list<DetectedObject>> processResult(std::vector<std::string> files) {
         std::map<std::string, std::list<DetectedObject>> detectedObjects;
 
-        std::string firstOutputName = this->outInfo.begin()->first;
-        const auto detectionOutArray = inferRequest.GetBlob(firstOutputName);
-        const float *box = detectionOutArray->buffer().as<float*>();
+        std::string firstOutputName = this->_outputInfo.begin()->first;
+        const auto detectionOutArray = _backend->getBlob(firstOutputName);
+        const float *box = static_cast<float*>(detectionOutArray->_data);
 
         std::string file = *files.begin();
         for (int c = 0; c < 20; c++) {
@@ -111,11 +111,11 @@ protected:
     }
 
 public:
-    YOLOObjectDetectionProcessor(const std::string& flags_m, const std::string& flags_d, const std::string& flags_i, const std::string& subdir, int flags_b,
-            double threshold,
-            InferenceEngine::Core ie, CsvDumper& dumper,
+    YOLOObjectDetectionProcessor(Backend *backend, const std::string &flags_m, const std::vector<std::string> &outputs,
+                                 const std::string &flags_d, const std::string &flags_i, const std::string &subdir, int flags_b,
+            double threshold, CsvDumper& dumper,
             const std::string& flags_a, const std::string& classes_list_file) :
 
-                ObjectDetectionProcessor(flags_m, flags_d, flags_i, subdir, flags_b, threshold,
-                        ie, dumper, flags_a, classes_list_file, PreprocessingOptions(true, ResizeCropPolicy::Resize), false) { }
+        ObjectDetectionProcessor(backend, flags_m, outputs, flags_d, flags_i, subdir, flags_b, threshold,
+                        dumper, flags_a, classes_list_file, PreprocessingOptions(true, ResizeCropPolicy::Resize), false) { }
 };

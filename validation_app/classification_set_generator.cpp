@@ -14,7 +14,6 @@
 #include <vector>
 
 #include "user_exception.hpp"
-#include "details/ie_exception.hpp"
 
 #ifdef _WIN32
 # include "w_dirent.h"
@@ -43,7 +42,7 @@ void readFile(std::string filename, std::function<void(std::string&, int lineNum
     std::string strLine = "";
 
     if (!inputFile.is_open())
-        THROW_IE_EXCEPTION << "Cannot open file: " << filename;
+        THROW_USER_EXCEPTION(1) << "Cannot open file: " << filename;
 
     size_t lineNumber = 0;
     while (std::getline(inputFile, strLine)) {
@@ -57,7 +56,7 @@ std::map<std::string, int> ClassificationSetGenerator::readLabels(const std::str
     int i = 0;
 
     readFile(labels, [&](std::string& line, size_t lineNumber) {
-        trim(line);
+        //trim(line);
         _classes[line] = i++;
     });
 
@@ -104,7 +103,7 @@ std::vector<std::pair<int, std::string>> ClassificationSetGenerator::validationM
     int classId = -1;
 
     readFile(file, [&](std::string& line, size_t lineNumber) {
-        trim(line);
+        //trim(line);
         size_t pos = line.rfind(" ");
         if (pos == std::string::npos) {
             THROW_USER_EXCEPTION(1) << "Bad file format! Cannot parse line " << lineNumber << ":\n> " << line;

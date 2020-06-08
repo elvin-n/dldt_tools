@@ -15,6 +15,8 @@
 #include "Processor.hpp"
 
 #include "VOCAnnotationParser.hpp"
+#include "image_description.h"
+#include "average_precision_calculator.h"
 
 using namespace std;
 
@@ -38,9 +40,10 @@ protected:
     virtual std::map<std::string, std::list<DetectedObject>> processResult(std::vector<std::string> files) = 0;
 
 public:
-    ObjectDetectionProcessor(const std::string& flags_m, const std::string& flags_d, const std::string& flags_i, const std::string& subdir, int flags_b,
+    ObjectDetectionProcessor(Backend *backend, const std::string &flags_m, const std::vector<std::string> &outputs,
+                             const std::string &flags_d, const std::string &flags_i, const std::string &subdir, int flags_b,
             double threshold,
-            InferenceEngine::Core ie, CsvDumper& dumper,
+            CsvDumper& dumper,
             const std::string& flags_a, const std::string& classes_list_file, PreprocessingOptions preprocessingOptions, bool scaleSizeToInputSize);
 
     shared_ptr<InferenceMetrics> Process(bool stream_output);
