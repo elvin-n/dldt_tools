@@ -34,13 +34,15 @@ ObjectDetectionProcessor::ObjectDetectionProcessor(Backend *backend, const std::
         std::getline(clf, line, '\n');
 
         if (line != "") {
-            istringstream lss(line);
-            std::string id;
-            lss >> id;
-            int class_index = 0;
-            lss >> class_index;
-
-            classes.insert(std::pair<std::string, int>(id, class_index));
+            // look for the latest space symbol
+            size_t spos = line.find_last_of(" ");
+            std::string className;
+            int classId;
+            className = line.substr(0, spos);
+            std::string strId = line.substr(spos, line.length() - spos);
+            istringstream streamId(strId);
+            streamId >> classId;
+            classes.insert(std::pair<std::string, int>(className, classId));
         }
     }
 }
