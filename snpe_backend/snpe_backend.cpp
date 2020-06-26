@@ -52,10 +52,10 @@ bool SNPEBackend::loadModel(const std::string &model, const std::string &device,
             snpeOutputs.append(o.c_str());
         }
         _snpe = snpeBuilder.setOutputLayers(snpeOutputs)
-            .setRuntimeProcessor(runtime).setCPUFallbackMode(true) //old (TO BE deprecated) API - still works !
-            // .setRuntimeProcessorOrder(runtimeList)
-            // .setUseUserSuppliedBuffers(true) TODO (amalyshe) to clarify what this option means
+            .setRuntimeProcessorOrder(runtimeList)
             .setDebugMode(false)
+            // BALANCED HIGH_PERFORMANCE POWER_SAVER SYSTEM_SETTINGS SUSTAINED_HIGH_PERFORMANCE BURST
+            // LOW_POWER_SAVER HIGH_POWER_SAVER LOW_BALANCED
             .setPerformanceProfile(zdl::DlSystem::PerformanceProfile_t::HIGH_PERFORMANCE)
             .setProfilingLevel(zdl::DlSystem::ProfilingLevel_t::OFF)
             .build();
@@ -126,18 +126,20 @@ bool SNPEBackend::loadModel(const std::string &model, const std::string &device,
 void SNPEBackend::report(const InferenceMetrics &im) const {
 
 }
-void SNPEBackend::infer() {
+bool SNPEBackend::infer() {
     bool execStatus = _snpe->execute(_inputTensorMap, _outputTensorMap);
-
-    zdl::DlSystem::StringList outNames = _outputTensorMap.getTensorNames();
-    for (size_t i = 0; i < outNames.size(); i++) {
-        auto vblob = _blobs[outNames.at(i)];
-        zdl::DlSystem::ITensor *outTensor = _outputTensorMap.getTensor(outNames.at(i));
-        if (vblob && outTensor) {
-            const void *oData = reinterpret_cast<void *>(&(*outTensor->begin()));
-            memcpy(vblob->_data, oData, product(vblob->_shape) * sizeof(float));
+    if (execStatus) {
+        zdl::DlSystem::StringList outNames = _outputTensorMap.getTensorNames();
+        for (size_t i = 0; i < outNames.size(); i++) {
+            auto vblob = _blobs[outNames.at(i)];
+            zdl::DlSystem::ITensor *outTensor = _outputTensorMap.getTensor(outNames.at(i));
+            if (vblob && outTensor) {
+                const void *oData = reinterpret_cast<void *>(&(*outTensor->begin()));
+                memcpy(vblob->_data, oData, product(vblob->_shape) * sizeof(float));
+            }
         }
     }
+    return execStatus;
 }
 
 std::shared_ptr<VBlob> SNPEBackend::getBlob(const std::string &name) {

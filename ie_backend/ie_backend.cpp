@@ -71,8 +71,13 @@ bool IEBackend::loadModel(const std::string &model, const std::string &device,
 void IEBackend::report(const InferenceMetrics &im) const {
 
 }
-void IEBackend::infer() {
-    inferRequest.Infer();
+bool IEBackend::infer() {
+    try {
+        inferRequest.Infer();
+        return true;
+    } catch (std::exception&) {
+        return false;
+    }
 }
 
 std::shared_ptr<VBlob> IEBackend::getBlob(const std::string &name) {

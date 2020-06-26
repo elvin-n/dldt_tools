@@ -55,7 +55,10 @@ Processor::Processor(Backend *backend, const std::string &flags_m, const std::ve
 double Processor::Infer(ConsoleProgress& progress, int filesWatched, InferenceMetrics& im) {
     // Infer model
     double time = getDurationOf([&]() {
-        _backend->infer();
+        bool result = _backend->infer();
+        if (!result) {
+            THROW_USER_EXCEPTION(1) << "Error happened during inference";
+        }
     });
 
     im.maxDuration = std::min(im.maxDuration, time);

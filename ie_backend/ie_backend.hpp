@@ -18,7 +18,7 @@ public:
         return nullptr;
     }
     virtual void report(const InferenceMetrics &im) const override;
-    virtual void infer()override;
+    virtual bool infer()override;
     virtual void release()override;
 
     virtual std::shared_ptr<VBlob> getBlob(const std::string &name)override;

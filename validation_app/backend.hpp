@@ -83,7 +83,7 @@ public:
      */
     virtual std::shared_ptr<InferenceMetrics> process(bool streamOutput = false) = 0;
     virtual void report(const InferenceMetrics &im) const = 0;
-    virtual void infer() = 0;
+    virtual bool infer() = 0;
 
     virtual std::shared_ptr<VBlob> getBlob(const std::string &name) = 0;
 
