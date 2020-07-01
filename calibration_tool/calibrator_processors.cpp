@@ -567,6 +567,37 @@ ClassificationCalibrator::ClassificationCalibrator(int nPictures, const std::str
     _cBatch = flags_b;
 }
 
+inline void TopResults(unsigned int n, Blob::Ptr input, std::vector<unsigned> &output) {
+    // casting of the Blob to MemoryBlob:
+    MemoryBlob::Ptr mb = as<MemoryBlob>(input);
+
+    SizeVector dims = mb->getTensorDesc().getDims();
+    size_t input_rank = dims.size();
+    if (!input_rank || !dims[0]) THROW_IE_EXCEPTION << "Input blob has incorrect dimensions!";
+    size_t batchSize = dims[0];
+    std::vector<unsigned> indexes(mb->size() / batchSize);
+
+    n = static_cast<unsigned>(std::min<size_t>((size_t)n, mb->size()));
+
+    output.resize(n * batchSize);
+
+    for (size_t i = 0; i < batchSize; i++) {
+        size_t offset = i * (mb->size() / batchSize);
+        auto ml = mb->rmap();
+        float *batchData = ml.as<float *>();
+        batchData += offset;
+
+        std::iota(std::begin(indexes), std::end(indexes), 0);
+        std::partial_sort(std::begin(indexes), std::begin(indexes) + n, std::end(indexes),
+                          [&batchData](unsigned l, unsigned r) {
+                              return batchData[l] > batchData[r];
+                          });
+        for (unsigned j = 0; j < n; j++) {
+            output.at(i * n + j) = indexes.at(j);
+        }
+    }
+}
+
 shared_ptr<Processor::InferenceMetrics> ClassificationCalibrator::Process(bool stream_output) {
     inferRequest = _inferRequestI8C;
     int top1Result = 0, total = 0;
@@ -629,7 +660,7 @@ shared_ptr<Processor::InferenceMetrics> ClassificationCalibrator::Process(bool s
         collectCalibrationStatistic(b);
 
         std::vector<unsigned> results;
-        InferenceEngine::TopResults(1, *firstOutputBlob, results);
+        TopResults(1, firstOutputBlob, results);
         for (size_t i = 0; i < b; i++) {
             int expc = expected[i];
             if (zeroBackground) expc++;

@@ -5,16 +5,16 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include "user_exception.hpp"
 
 #include "ClassificationProcessor.hpp"
 #include "Processor.hpp"
 
-using InferenceEngine::details::InferenceEngineException;
-
-ClassificationProcessor::ClassificationProcessor(const std::string& flags_m, const std::string& flags_d, const std::string& flags_i, int flags_b,
-        Core ie, CsvDumper& dumper, const std::string& flags_l,
+ClassificationProcessor::ClassificationProcessor(Backend *backend, const std::string &flags_m, const std::vector<std::string> &outputs,
+                                                 const std::string &flags_d, const std::string &flags_i, int flags_b,
+        CsvDumper& dumper, const std::string& flags_l,
         PreprocessingOptions preprocessingOptions, bool zeroBackground)
-    : Processor(flags_m, flags_d, flags_i, flags_b, ie, dumper, "Classification network", preprocessingOptions), zeroBackground(zeroBackground) {
+    : Processor(backend, flags_m, outputs, flags_d, flags_i, flags_b, dumper, "Classification network", preprocessingOptions), zeroBackground(zeroBackground) {
 
     // Change path to labels file if necessary
     if (flags_l.empty()) {
@@ -24,11 +24,42 @@ ClassificationProcessor::ClassificationProcessor(const std::string& flags_m, con
     }
 }
 
-ClassificationProcessor::ClassificationProcessor(const std::string& flags_m, const std::string& flags_d, const std::string& flags_i, int flags_b,
-        Core ie, CsvDumper& dumper, const std::string& flags_l, bool zeroBackground)
-    : ClassificationProcessor(flags_m, flags_d, flags_i, flags_b, ie, dumper, flags_l,
+ClassificationProcessor::ClassificationProcessor(Backend *backend, const std::string &flags_m, const std::vector<std::string> &outputs,
+                                                 const std::string &flags_d, const std::string &flags_i, int flags_b,
+                                                 CsvDumper &dumper, const std::string &flags_l, bool zeroBackground)
+    : ClassificationProcessor(backend, flags_m, outputs, flags_d, flags_i, flags_b, dumper, flags_l,
             PreprocessingOptions(false, ResizeCropPolicy::ResizeThenCrop, 256, 256), zeroBackground) {
 }
+
+inline void TopResults(unsigned int n, shared_ptr<VBlob> input, std::vector<unsigned> &output) {
+    VShape dims = input->_shape;
+    size_t input_rank = dims.size();
+    if (!input_rank || !dims[0])
+        THROW_USER_EXCEPTION(1) << "Input blob has incorrect dimensions!";
+    size_t batchSize = dims[0];
+    size_t blobSize = product(input->_shape);
+    std::vector<unsigned> indexes(blobSize / batchSize);
+
+    n = static_cast<unsigned>(std::min<size_t>((size_t)n, blobSize));
+
+    output.resize(n * batchSize);
+
+    for (size_t i = 0; i < batchSize; i++) {
+        size_t offset = i *(blobSize / batchSize);
+        float *batchData = static_cast<float*>(input->_data);
+        batchData += offset;
+
+        std::iota(std::begin(indexes), std::end(indexes), 0);
+        std::partial_sort(std::begin(indexes), std::begin(indexes) + n, std::end(indexes),
+                          [&batchData](unsigned l, unsigned r) {
+                              return batchData[l] > batchData[r];
+                          });
+        for (unsigned j = 0; j < n; j++) {
+            output.at(i * n + j) = indexes.at(j);
+        }
+    }
+}
+
 
 std::shared_ptr<Processor::InferenceMetrics> ClassificationProcessor::Process(bool stream_output) {
      slog::info << "Collecting labels" << slog::endl;
@@ -47,10 +78,11 @@ std::shared_ptr<Processor::InferenceMetrics> ClassificationProcessor::Process(bo
 
      ClassificationInferenceMetrics im;
 
-     std::string firstInputName = this->inputInfo.begin()->first;
-     std::string firstOutputName = this->outInfo.begin()->first;
-     auto firstInputBlob = inferRequest.GetBlob(firstInputName);
-     auto firstOutputBlob = inferRequest.GetBlob(firstOutputName);
+     std::string firstInputName = this->_inputInfo.begin()->first;
+     std::string firstOutputName = this->_outputInfo.begin()->first;
+     auto firstInputBlob = _backend->getBlob(firstInputName);
+     auto firstOutputBlob = _backend->getBlob(firstOutputName);
+
 
      auto iter = validationMap.begin();
      while (iter != validationMap.end()) {
@@ -59,9 +91,9 @@ std::shared_ptr<Processor::InferenceMetrics> ClassificationProcessor::Process(bo
          for (; b < batch && iter != validationMap.end(); b++, iter++, filesWatched++) {
              expected[b] = iter->first;
              try {
-                 decoder.insertIntoBlob(iter->second, b, *firstInputBlob, preprocessingOptions);
+                 decoder.insertIntoBlob(iter->second, b, firstInputBlob, preprocessingOptions);
                  files[b] = iter->second;
-             } catch (const InferenceEngineException& iex) {
+             } catch (const std::exception& iex) {
                  slog::warn << "Can't read file " << iter->second << slog::endl;
                  slog::warn << "Error: " << iex.what() << slog::endl;
                  // Could be some non-image file in directory
@@ -69,12 +101,11 @@ std::shared_ptr<Processor::InferenceMetrics> ClassificationProcessor::Process(bo
                  continue;
              }
          }
-
          Infer(progress, filesWatched, im);
 
          std::vector<unsigned> results;
-         auto firstOutputData = firstOutputBlob->buffer().as<PrecisionTrait<Precision::FP32>::value_type*>();
-         InferenceEngine::TopResults(TOP_COUNT, *firstOutputBlob, results);
+         auto firstOutputData = static_cast<float*>(firstOutputBlob->_data);
+         TopResults(TOP_COUNT, firstOutputBlob, results);
 
          for (size_t i = 0; i < b; i++) {
              int expc = expected[i];
@@ -88,7 +119,7 @@ std::shared_ptr<Processor::InferenceMetrics> ClassificationProcessor::Process(bo
                  if (static_cast<int>(classId) == expc) {
                      im.topCountResult++;
                  }
-                 dumper << classId << firstOutputData[classId + i * (firstOutputBlob->size() / batch)];
+                 dumper << classId << firstOutputData[classId + i * (product(firstOutputBlob->_shape) / batch)];
              }
              dumper.endLine();
              im.total++;

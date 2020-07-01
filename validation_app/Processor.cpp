@@ -5,39 +5,35 @@
 #include <string>
 #include <algorithm>
 
+#include "user_exception.hpp"
+
 #include <samples/common.hpp>
 
 #include "Processor.hpp"
 
-using namespace InferenceEngine;
+Processor::Processor(Backend *backend, const std::string &flags_m, const std::vector<std::string> &outputs, const std::string &flags_d, const std::string &flags_i, int flags_b,
+        CsvDumper& dumper, const std::string& approach, PreprocessingOptions preprocessingOptions)
 
-Processor::Processor(const std::string& flags_m, const std::string& flags_d, const std::string& flags_i, int flags_b,
-        Core ie, CsvDumper& dumper, const std::string& approach, PreprocessingOptions preprocessingOptions)
+    : _backend(backend), modelFileName(flags_m), targetDevice(flags_d), imagesPath(flags_i), batch(flags_b),
+      preprocessingOptions(preprocessingOptions), dumper(dumper), approach(approach) {
 
-    : modelFileName(flags_m), targetDevice(flags_d), imagesPath(flags_i), batch(flags_b),
-      preprocessingOptions(preprocessingOptions), dumper(dumper), ie_(ie), approach(approach) {
+    // Load model to plugin and create an inference request
+    std::map<std::string, std::string> config;
+    _backend->loadModel(flags_m, targetDevice, outputs, config);
+    _inputInfo = _backend->getInputDataMap();
+    _outputInfo = _backend->getOutputDataMap();
 
-    // --------------------Load network (Generated xml/bin files)-------------------------------------------
-    slog::info << "Loading network files" << slog::endl;
+    if (_inputInfo.size() != 1) {
+        THROW_USER_EXCEPTION(1) << "This app accepts networks having only one input";
+    }
 
-    /** Read network model **/
-    networkReader.ReadNetwork(modelFileName);
-    if (!networkReader.isParseSuccess()) THROW_IE_EXCEPTION << "cannot load a failed Model";
+    for (auto &item : _inputInfo) {
+        inputDims = item.second._shape;
+        batch = inputDims[0];
+        slog::info << "Batch size is " << std::to_string(inputDims[0]) << slog::endl;
+    }
 
-    /** Extract model name and load weights **/
-    std::string binFileName = fileNameNoExt(modelFileName) + ".bin";
-    networkReader.ReadWeights(binFileName.c_str());
-    // -----------------------------------------------------------------------------------------------------
-
-    // -----------------------------Prepare input blobs-----------------------------------------------------
-    slog::info << "Preparing input blobs" << slog::endl;
-
-    /** Taking information about all topology inputs **/
-    inputInfo = InputsDataMap(networkReader.getNetwork().getInputsInfo());
-
-    /** Stores all input blobs data **/
-
-    if (batch == 0) {
+/*    if (batch == 0) {
         // Zero means "take batch value from the IR"
         batch = networkReader.getNetwork().getBatchSize();
     } else {
@@ -50,48 +46,19 @@ Processor::Processor(const std::string& flags_m, const std::string& flags_d, con
         input_shape[0] = batch;
         input_shapes[input_name] = input_shape;
         network.reshape(input_shapes);
+
+        THROW_IE_EXCEPTION << "Need to handle batch size more accurate";
     }
-
-    if (inputInfo.size() != 1) {
-        THROW_IE_EXCEPTION << "This app accepts networks having only one input";
-    }
-
-    for (auto & item : inputInfo) {
-        inputDims = item.second->getTensorDesc().getDims();
-        slog::info << "Batch size is " << std::to_string(networkReader.getNetwork().getBatchSize()) << slog::endl;
-    }
-
-    outInfo = networkReader.getNetwork().getOutputsInfo();
-    DataPtr outData = outInfo.begin()->second;
-
-    // Set the precision of output data provided by the user, should be called before load of the network to the plugin
-    if (!outData) {
-        throw std::logic_error("output data pointer is not valid");
-    }
-    outData->setPrecision(Precision::FP32);
-    if (outInfo.size() != 1) {
-        THROW_IE_EXCEPTION << "This app accepts networks having only one output";
-    }
-    if (!outData) {
-        THROW_IE_EXCEPTION << "The network output info is not valid";
-    }
-
-    outputDims = outData->getTensorDesc().getDims();
-
-    // Load model to plugin and create an inference request
-
-    ExecutableNetwork executable_network = ie.LoadNetwork(networkReader.getNetwork(), targetDevice,{});
-    inferRequest = executable_network.CreateInferRequest();
+*/
 }
 
 double Processor::Infer(ConsoleProgress& progress, int filesWatched, InferenceMetrics& im) {
-    ResponseDesc dsc;
-
-    // InferencePlugin plugin(enginePtr);
-
     // Infer model
     double time = getDurationOf([&]() {
-        inferRequest.Infer();
+        bool result = _backend->infer();
+        if (!result) {
+            THROW_USER_EXCEPTION(1) << "Error happened during inference";
+        }
     });
 
     im.maxDuration = std::min(im.maxDuration, time);

@@ -30,8 +30,8 @@
                 MenuCaption="&amp;Build"
                 CaptureOutputWith="ProcessBuffer"
                 SaveOption="SaveWorkspaceFiles"
-                RunFromDir="%rw">
-                <Exec CmdLine='"%(VSLICKBIN1)vsbuild" build "%w" "%r"'/>
+                RunFromDir="%rw/../build.debug">
+                <Exec CmdLine="make -j 12"/>
             </Target>
             <Target
                 Name="Rebuild"
@@ -47,7 +47,7 @@
                 SaveOption="SaveNone"
                 CaptureOutputWith="ProcessBuffer"
                 RunFromDir="%rp/../build.debug/intel64/Debug">
-                <Exec CmdLine='"%(VSLICKBIN1)vsdebugio" -port 8001 -prog %rp/../build.debug/intel64/Debug/validation_app -m /home/elvin/int8/ssd_mobilenet/ssd_mobilenet.xml -i /home/elvin/VOC2007/testonly/VOCdevkit-100/ -t OD -ODkind SSD -ODa /home/elvin/VOC2007/testonly/VOCdevkit-100/VOC2007/Annotations/ -ODc /home/elvin/VOC2007/VOC_SSD_Classes.txt -ODsubdir JPEGImages -d CPU'/>
+                <Exec CmdLine='"%(VSLICKBIN1)vsdebugio" -port 8001 -prog %rp/../build.debug/intel64/Debug/validation_app -backend snpe_backend -t C -m /home/amalyshe/sandboxes/models/tmp/mobilenet_v1_1.0_224_frozen.dlc -i ~/sandboxes/datasets/Imagenet/ILSVRC2012_val.txt -d CPU -Czb true'/>
             </Target>
             <Target
                 Name="Execute"
@@ -56,7 +56,7 @@
                 BuildFirst="1"
                 CaptureOutputWith="ProcessBuffer"
                 RunFromDir="%rp/../build.debug/intel64/Debug">
-                <Exec CmdLine="%rp/../build.debug/intel64/Debug/validation_app -m /home/elvin/int8/ssd_mobilenet/ssd_mobilenet.xml -i /home/elvin/VOC2007/testonly/VOCdevkit-100/ -t OD -ODkind SSD -ODa /home/elvin/VOC2007/testonly/VOCdevkit-100/VOC2007/Annotations/ -ODc /home/elvin/VOC2007/VOC_SSD_Classes.txt -ODsubdir JPEGImages -d CPU"/>
+                <Exec CmdLine="%rp/../build.debug/intel64/Debug/validation_app -backend snpe_backend -t C -m /home/amalyshe/sandboxes/models/tmp/mobilenet_v1_1.0_224_frozen.dlc -i ~/sandboxes/datasets/Imagenet/ILSVRC2012_val.txt -d CPU -Czb true"/>
             </Target>
         </Menu>
     </Config>
@@ -86,8 +86,8 @@
                 MenuCaption="&amp;Build"
                 CaptureOutputWith="ProcessBuffer"
                 SaveOption="SaveWorkspaceFiles"
-                RunFromDir="%rw">
-                <Exec CmdLine='"%(VSLICKBIN1)vsbuild" build "%w" "%r"'/>
+                RunFromDir="%rw/../build.debug">
+                <Exec CmdLine="make -j 12"/>
             </Target>
             <Target
                 Name="Rebuild"
@@ -103,7 +103,7 @@
                 SaveOption="SaveNone"
                 CaptureOutputWith="ProcessBuffer"
                 RunFromDir="%rp/../build.debug/intel64/Debug">
-                <Exec CmdLine='"%(VSLICKBIN1)vsdebugio" -port 8001 -prog %rp/../build.debug/intel64/Debug/validation_app -m /home/elvin/int8/ssd_mobilenet/ssd_mobilenet.xml -i /home/elvin/VOC2007/testonly/VOCdevkit-100/ -t OD -ODkind SSD -ODa /home/elvin/VOC2007/testonly/VOCdevkit-100/VOC2007/Annotations/ -ODc /home/elvin/VOC2007/VOC_SSD_Classes.txt -ODsubdir JPEGImages -d CPU'/>
+                <Exec CmdLine='"%(VSLICKBIN1)vsdebugio" -port 8001 -prog %rp/../build.debug/intel64/Debug/validation_app -backend snpe_backend -t C -m /home/amalyshe/sandboxes/models/tmp/mobilenet_v1_1.0_224_frozen.dlc -i ~/sandboxes/datasets/Imagenet/ILSVRC2012_val.txt -d CPU -Czb true'/>
             </Target>
             <Target
                 Name="Execute"
@@ -112,7 +112,7 @@
                 BuildFirst="1"
                 CaptureOutputWith="ProcessBuffer"
                 RunFromDir="%rp/../build.debug/intel64/Debug">
-                <Exec CmdLine="%rp/../build.debug/intel64/Debug/validation_app -m /home/elvin/int8/ssd_mobilenet/ssd_mobilenet.xml -i /home/elvin/VOC2007/testonly/VOCdevkit-100/ -t OD -ODkind SSD -ODa /home/elvin/VOC2007/testonly/VOCdevkit-100/VOC2007/Annotations/ -ODc /home/elvin/VOC2007/VOC_SSD_Classes.txt -ODsubdir JPEGImages -d CPU"/>
+                <Exec CmdLine="%rp/../build.debug/intel64/Debug/validation_app -backend snpe_backend -t C -m /home/amalyshe/sandboxes/models/tmp/mobilenet_v1_1.0_224_frozen.dlc -i ~/sandboxes/datasets/Imagenet/ILSVRC2012_val.txt -d CPU -Czb true"/>
             </Target>
         </Menu>
     </Config>
@@ -818,26 +818,51 @@
                 <F N="../validation_app/pugixml/pugixml.hpp"/>
                 <F N="../validation_app/pugixml/pugiconfig.hpp"/>
             </Folder>
-            <F N="../validation_app/main.cpp"/>
-            <F N="../validation_app/classification_set_generator.hpp"/>
-            <F N="../validation_app/SSDObjectDetectionProcessor.hpp"/>
-            <F N="../validation_app/ObjectDetectionProcessor.hpp"/>
-            <F N="../validation_app/VOCAnnotationParser.hpp"/>
-            <F N="../validation_app/Processor.hpp"/>
-            <F N="../validation_app/YOLOObjectDetectionProcessor.hpp"/>
-            <F N="../validation_app/ClassificationProcessor.cpp"/>
-            <F N="../validation_app/image_decoder.cpp"/>
-            <F N="../validation_app/VOCAnnotationParser.cpp"/>
-            <F N="../validation_app/CMakeLists.txt"/>
-            <F N="../validation_app/PreprocessingOptions.hpp"/>
-            <F N="../validation_app/user_exception.hpp"/>
-            <F N="../validation_app/ObjectDetectionProcessor.cpp"/>
+            <F N="../validation_app/backend.hpp"/>
             <F N="../validation_app/classification_set_generator.cpp"/>
-            <F N="../validation_app/README.md"/>
-            <F N="../validation_app/Processor.cpp"/>
+            <F N="../validation_app/classification_set_generator.hpp"/>
+            <F N="../validation_app/ClassificationProcessor.cpp"/>
             <F N="../validation_app/ClassificationProcessor.hpp"/>
-            <F N="../validation_app/.SSDObjectDetectionProcessor.hpp.swp"/>
+            <F N="../validation_app/CMakeLists.txt"/>
+            <F N="../validation_app/image_decoder.cpp"/>
             <F N="../validation_app/image_decoder.hpp"/>
+            <F N="../validation_app/main.cpp"/>
+            <F N="../validation_app/ObjectDetectionProcessor.cpp"/>
+            <F N="../validation_app/ObjectDetectionProcessor.hpp"/>
+            <F N="../validation_app/PreprocessingOptions.hpp"/>
+            <F N="../validation_app/Processor.cpp"/>
+            <F N="../validation_app/Processor.hpp"/>
+            <F N="../validation_app/README.md"/>
+            <F N="../validation_app/SSDObjectDetectionProcessor.hpp"/>
+            <F N="../validation_app/user_exception.hpp"/>
+            <F N="../validation_app/VOCAnnotationParser.cpp"/>
+            <F N="../validation_app/VOCAnnotationParser.hpp"/>
+            <F N="../validation_app/YOLOObjectDetectionProcessor.hpp"/>
+        </Folder>
+        <Folder
+            Name="ie_backend"
+            Filters=""
+            GUID="{895F6F72-CCC2-4251-B591-E066F6E37609}">
+            <F N="../ie_backend/CMakeLists.txt"/>
+            <F N="../ie_backend/ie_backend.cpp"/>
+            <F N="../ie_backend/ie_backend.hpp"/>
+        </Folder>
+        <Folder
+            Name="snpe_backend"
+            Filters=""
+            GUID="{F157E31B-DE8C-4FE1-8257-1DDBD6220045}">
+            <F N="../snpe_backend/CMakeLists.txt"/>
+            <F N="../snpe_backend/snpe_backend.cpp"/>
+            <F N="../snpe_backend/snpe_backend.hpp"/>
+        </Folder>
+        <Folder
+            Name="snpe_object_detection_ssd"
+            Filters=""
+            GUID="{0AF7DFCD-0A9C-4601-9631-621FE37F9754}">
+            <F N="../snpe_samples/snpe_object_detection_ssd/CMakeLists.txt"/>
+            <F N="../snpe_samples/snpe_object_detection_ssd/main.cpp"/>
+            <F N="../snpe_samples/snpe_object_detection_ssd/object_detection_sample_ssd.h"/>
+            <F N="../snpe_samples/snpe_object_detection_ssd/README.md"/>
         </Folder>
         <F N="../build.sh"/>
         <F N="../CMakeLists.txt"/>
