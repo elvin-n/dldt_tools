@@ -37,6 +37,9 @@ protected:
 
     bool scaleProposalToInputSize;
 
+    VShape inputDims;
+    std::string picInputName;
+
     virtual std::map<std::string, std::list<DetectedObject>> processResult(std::vector<std::string> files) = 0;
 
 public:

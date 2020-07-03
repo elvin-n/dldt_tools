@@ -23,14 +23,12 @@ Processor::Processor(Backend *backend, const std::string &flags_m, const std::ve
     _inputInfo = _backend->getInputDataMap();
     _outputInfo = _backend->getOutputDataMap();
 
-    if (_inputInfo.size() != 1) {
-        THROW_USER_EXCEPTION(1) << "This app accepts networks having only one input";
-    }
-
     for (auto &item : _inputInfo) {
-        inputDims = item.second._shape;
-        batch = inputDims[0];
-        slog::info << "Batch size is " << std::to_string(inputDims[0]) << slog::endl;
+        VShape inputDims = item.second._shape;
+        if (inputDims.size() == 4) {
+            batch = inputDims[0];
+            slog::info << "Batch size is " << std::to_string(inputDims[0]) << slog::endl;
+        }
     }
 
 /*    if (batch == 0) {

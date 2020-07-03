@@ -41,7 +41,6 @@ protected:
     std::string targetDevice;
     std::string imagesPath;
     size_t batch;
-    VShape inputDims;
     double loadDuration;
     PreprocessingOptions preprocessingOptions;
 
@@ -68,6 +67,7 @@ public:
         slog::info << slog::endl;
 
         if (im.nRuns > 0) {
+            size_t batch = 1;
             slog::info << "Average infer time (ms): " << averageTime << " (" << OUTPUT_FLOATING(1000.0 / (averageTime / batch))
                     << " images per second with batch size = " << batch << ")" << slog::endl;
         } else {

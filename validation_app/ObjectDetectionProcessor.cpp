@@ -24,6 +24,20 @@ ObjectDetectionProcessor::ObjectDetectionProcessor(Backend *backend, const std::
         const std::string& flags_a, const std::string& classes_list_file, PreprocessingOptions preprocessingOptions, bool scaleProposalToInputSize)
         : Processor(backend, flags_m, outputs, flags_d, flags_i, flags_b, dumper, "Object detection network", preprocessingOptions),
               annotationsPath(flags_a), subdir(subdir), threshold(threshold), scaleProposalToInputSize(scaleProposalToInputSize) {
+    // To support faster-rcnn having several inputs we need to identify input dedicated for image correctly
+    for (auto &item : _inputInfo) {
+        if (item.second._shape.size() == 4) {
+            inputDims = item.second._shape;
+            picInputName = item.first;
+        } else if (item.second._shape.size() == 2) {
+            auto inputScale = _backend->getBlob(item.first);
+            float *sdata = static_cast<float *>(inputScale->_data);
+            sdata[0] = 600.f;
+            sdata[1] = 1024.f;
+            sdata[2] = 1.f;
+        }
+    }
+
     std::ifstream clf(classes_list_file);
     if (!clf) {
         throw UserException(1) <<  "Classes list file \"" << classes_list_file << "\" not found or inaccessible";
@@ -89,8 +103,7 @@ shared_ptr<Processor::InferenceMetrics> ObjectDetectionProcessor::Process(bool s
 
     std::map<std::string, ImageDescription> scaledDesiredForFiles;
 
-    std::string firstInputName = this->_inputInfo.begin()->first;
-    auto firstInputBlob = _backend->getBlob(firstInputName);
+    auto firstInputBlob = _backend->getBlob(picInputName);
 
     ImageDecoder decoder;
     while (iter != annCollector.annotations().end()) {
