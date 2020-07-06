@@ -60,9 +60,16 @@ protected:
             std::string boxesName = "Postprocessor/BatchMultiClassNonMaxSuppression_boxes";
             if (_outputInfo.find(scoresName) == _outputInfo.end() ||
                 _outputInfo.find(classesName) == _outputInfo.end() ||
-                _outputInfo.find(boxesName) == _outputInfo.end())
-            {
-                THROW_USER_EXCEPTION(1) << "Tensorflow ssd model is expected, but cannot get expected outputs";
+                _outputInfo.find(boxesName) == _outputInfo.end()) {
+                // TFLite
+                scoresName = "TFLite_Detection_PostProcess:2";
+                classesName = "TFLite_Detection_PostProcess:1";
+                boxesName = "TFLite_Detection_PostProcess";
+                if (_outputInfo.find(scoresName) == _outputInfo.end() ||
+                    _outputInfo.find(classesName) == _outputInfo.end() ||
+                    _outputInfo.find(boxesName) == _outputInfo.end()) {
+                    THROW_USER_EXCEPTION(1) << "We expect model converted by SNPE or TFLite with certain outputs, but cannot get them";
+                }
             }
 
             const auto scoresBlob = _backend->getBlob(scoresName);
@@ -76,6 +83,9 @@ protected:
             for (size_t curProposal = 0; curProposal < scoresBlob->_shape[1]; curProposal++) {
                 float confidence = oScores[curProposal];
                 float label = static_cast<int>(oClasses[curProposal]);
+                if (classesName == "TFLite_Detection_PostProcess:1") {
+                 label += 1;
+                }
                 // boxes have follow layout top, left, bottom, right
                 // according to this link: https://www.tensorflow.org/lite/models/object_detection/overview
                 auto ymin = static_cast<int>(oBoxes[4 * curProposal] * inputDims[1]);

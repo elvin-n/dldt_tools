@@ -152,4 +152,5 @@ endif()
 
 if(DEFINED TENSORFLOW_ROOT)
     add_subdirectory(tflite_samples/tflite_hello_classification)
+    add_subdirectory(tflite_backend)
 endif()

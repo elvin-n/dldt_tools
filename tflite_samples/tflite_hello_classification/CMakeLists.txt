@@ -20,7 +20,7 @@ include_directories(${TENSORFLOW_ROOT}/tensorflow/lite/tools/make/downloads/flat
 if(NOT DEFINED ANDROID_NATIVE_API_LEVEL)
   target_link_libraries(tflite_hello_classification PRIVATE ${TENSORFLOW_ROOT}/bazel-out/k8-opt/bin/tensorflow/lite/libtensorflowlite.so)
 else()
-  target_link_libraries(tflite_hello_classification PRIVATE PRIVATE ${TENSORFLOW_ROOT}/bazel-out/arm64-v8a-opt/bin/tensorflow/lite/libtensorflowlite.so
+  target_link_libraries(tflite_hello_classification PRIVATE ${TENSORFLOW_ROOT}/bazel-out/arm64-v8a-opt/bin/tensorflow/lite/libtensorflowlite.so
           ${TENSORFLOW_ROOT}/bazel-out/arm64-v8a-opt/bin/external/flatbuffers/src/libflatbuffers.a)
 endif()
 

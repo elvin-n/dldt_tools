@@ -83,14 +83,22 @@ cv::Size addToBlob(std::string name, int batch_pos, VBlob* blob, PreprocessingOp
         }
     } else if (blob->_layout == "NHWC") {
         size_t nielements = width * height * channels;
-        for (size_t i = 0; i < nielements; i++) {
-            blob_data[i] = (static_cast<float>(result_image.data[i]) - 128.f )/ 127.f;
-        }
-        if (blob->_colourFormat == "RGB") {
-            for (size_t i = 0; i < nielements; i += channels) {
-                float tmp = blob_data[i];
-                blob_data[i] = blob_data[i + 2];
-                blob_data[i + 2] = tmp;
+        if (blob->_precision == FP32) {
+            for (size_t i = 0; i < nielements; i++) {
+                blob_data[i] = (static_cast<float>(result_image.data[i]) - 128.f )/ 127.f;
+            }
+            if (blob->_colourFormat == "RGB") {
+                for (size_t i = 0; i < nielements; i += channels) {
+                    float tmp = blob_data[i];
+                    blob_data[i] = blob_data[i + 2];
+                    blob_data[i + 2] = tmp;
+                }
+            }
+        } else if (blob->_precision == U8) {
+            for (size_t i = 0; i < nielements; i += 3) {
+                blob_data[i] = result_image.data[i + 2];
+                blob_data[i+1] = result_image.data[i + 1];
+                blob_data[i+2] = result_image.data[i];
             }
         }
     }
