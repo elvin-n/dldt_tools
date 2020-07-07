@@ -12,7 +12,6 @@
 
 #include <string>
 #include <vector>
-#include "ie_blob.h"
 
 #include "PreprocessingOptions.hpp"
 #include "backend.hpp"
