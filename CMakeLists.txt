@@ -151,6 +151,8 @@ if(DEFINED SNPE_ROOT)
 endif()
 
 if(DEFINED TENSORFLOW_ROOT)
-    add_subdirectory(tflite_samples/tflite_hello_classification)
-    add_subdirectory(tflite_backend)
+  add_subdirectory(tflite_samples/tflite_hello_classification)
+  add_subdirectory(tflite_samples/tflite_object_detection_ssd)
+  add_subdirectory(tflite_backend)
 endif()
+
