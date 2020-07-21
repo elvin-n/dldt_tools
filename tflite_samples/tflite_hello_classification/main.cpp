@@ -13,6 +13,9 @@
 #include "tensorflow/lite/interpreter.h"
 #include "tensorflow/lite/interpreter_builder.h"
 #include "tensorflow/lite/kernels/register.h"
+#if defined(__ANDROID__) && (defined(__arm__) || defined(__aarch64__))
+#include "tensorflow/lite/delegates/hexagon/hexagon_delegate.h"
+#endif
 
 /*
 Fore delegate?
@@ -88,8 +91,56 @@ int wmain(int argc, wchar_t *argv[]) {
         // forcedly set number of threads as 1 for a while
         interpreter->SetNumThreads(1);
 
-        // there should be offloading part, not ready yet
+        // there is offloading part
+        TfLiteDelegate* delegate = nullptr;
+        if (device_name == "GPU") {
+/*        #if defined(__ANDROID__)
+          TfLiteGpuDelegateOptionsV2 gpu_opts = TfLiteGpuDelegateOptionsV2Default();
+          gpu_opts.inference_preference =
+              TFLITE_GPU_INFERENCE_PREFERENCE_SUSTAINED_SPEED;
+          gpu_opts.inference_priority1 =
+              s->allow_fp16 ? TFLITE_GPU_INFERENCE_PRIORITY_MIN_LATENCY
+                            : TFLITE_GPU_INFERENCE_PRIORITY_MAX_PRECISION;
+          auto delegate = evaluation::CreateGPUDelegate(&gpu_opts);
+        #else
+          auto delegate = evaluation::CreateGPUDelegate();
+        #endif
 
+          if (!delegate) {
+            std::cerr << "GPU acceleration is unsupported on this platform.";
+            return -1;
+          } else {
+            delegates.emplace("GPU", std::move(delegate));
+          }
+*/
+        } else if (device_name == "DSP") {
+#if defined(__ANDROID__) && (defined(__arm__) || defined(__aarch64__))
+          TfLiteHexagonInit();
+          TfLiteHexagonDelegateOptions options({0});
+          delegate = TfLiteHexagonDelegateCreate(&options);
+          if (!delegate) {
+            std::cerr << "Hexagon acceleration is unsupported on this platform.";
+            TfLiteHexagonTearDown();
+            return -1;
+          } /*else {
+            delegates.emplace("Hexagon", std::move(delegate));
+          }*/
+#endif
+        } else if (device_name == "CPU") {
+            // default execution unit, no additional actions are required
+        } else {
+           std::cerr << "The device name is not valid. Please select CPU/DSP/GPU." << std::endl;
+           return -1;
+        }
+
+        if (delegate) {
+          if (interpreter->ModifyGraphWithDelegate(delegate) !=
+              kTfLiteOk) {
+            std::cerr << "Failed to apply TFLite delegate." << std::endl;
+            return -1;
+          }
+          std::cout << "Applied deligation successfully" << std::endl;
+        }
         // -----------------------------------------------------------------------------------------------------
 
         // --------------------------- 3. Prepare input --------------------------------------------------------

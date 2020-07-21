@@ -26,7 +26,11 @@ include_directories(${SNPE_ROOT}/include/zdl)
 if(NOT DEFINED ANDROID_NATIVE_API_LEVEL)
   target_link_libraries(snpe_hello_classification PRIVATE ${SNPE_ROOT}/lib/x86_64-linux-clang/libSNPE.so)
 else()
-  target_link_libraries(snpe_hello_classification PRIVATE ${SNPE_ROOT}/lib/arm-android-clang6.0/libSNPE.so)
+  if (${ANDROID_ABI} STREQUAL "arm64-v8a")
+    target_link_libraries(snpe_hello_classification PRIVATE ${SNPE_ROOT}/lib/aarch64-android-clang6.0/libSNPE.so)
+  else()
+    target_link_libraries(snpe_hello_classification PRIVATE ${SNPE_ROOT}/lib/arm-android-clang6.0/libSNPE.so)
+  endif()
 endif()
 
 

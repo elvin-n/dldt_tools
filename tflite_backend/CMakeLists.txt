@@ -26,7 +26,18 @@ add_library(${TARGET_NAME} SHARED ${MAIN_SRC} ${MAIN_HEADERS} )
 if(NOT DEFINED ANDROID_NATIVE_API_LEVEL)
   target_link_libraries(${TARGET_NAME} PRIVATE ${TENSORFLOW_ROOT}/bazel-out/k8-opt/bin/tensorflow/lite/libtensorflowlite.so)
 else()
-  target_link_libraries(${TARGET_NAME} PRIVATE ${SNPE_ROOT}/lib/arm-android-clang6.0/libSNPE.so)
+  if (${ANDROID_ABI} STREQUAL "arm64-v8a")
+    target_link_libraries(${TARGET_NAME} PRIVATE ${TENSORFLOW_ROOT}/bazel-out/arm64-v8a-opt/bin/tensorflow/lite/libtensorflowlite.so)
+  else()
+    target_link_libraries(${TARGET_NAME} PRIVATE
+            ${TENSORFLOW_ROOT}/bazel-out/armeabi-v7a-opt/bin/tensorflow/lite/libtensorflowlite.so
+            ${TENSORFLOW_ROOT}/bazel-out/armeabi-v7a-opt/bin/tensorflow/lite/delegates/hexagon/libhexagon_delegate.a
+            ${TENSORFLOW_ROOT}/bazel-out/armeabi-v7a-opt/bin/tensorflow/lite/delegates/hexagon/libhexagon_implementation.a
+            ${TENSORFLOW_ROOT}/bazel-out/armeabi-v7a-opt/bin/tensorflow/lite/delegates/hexagon/libhexagon_delegate_kernel.a
+            ${TENSORFLOW_ROOT}/bazel-out/armeabi-v7a-opt/bin/tensorflow/lite/delegates/hexagon/libutils.a
+            ${TENSORFLOW_ROOT}/bazel-out/armeabi-v7a-opt/bin/tensorflow/lite/delegates/hexagon/builders/libop_builder.a
+    )
+  endif()
 endif()
 
 

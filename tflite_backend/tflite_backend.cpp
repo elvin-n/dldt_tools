@@ -2,6 +2,9 @@
 // Use of this source code is governed by a BSD-style license
 
 #include "tflite_backend.hpp"
+#if defined(__ANDROID__) && (defined(__arm__) || defined(__aarch64__))
+#include "tensorflow/lite/delegates/hexagon/hexagon_delegate.h"
+#endif
 
 #include <string.h>
 
@@ -29,12 +32,63 @@ bool TFLiteBackend::loadModel(const std::string &model, const std::string &devic
 
         _interpreter->SetNumThreads(1);
 
+        // there is offloading part
+        TfLiteDelegate* delegate = nullptr;
+        if (device == "GPU") {
+/*        #if defined(__ANDROID__)
+          TfLiteGpuDelegateOptionsV2 gpu_opts = TfLiteGpuDelegateOptionsV2Default();
+          gpu_opts.inference_preference =
+              TFLITE_GPU_INFERENCE_PREFERENCE_SUSTAINED_SPEED;
+          gpu_opts.inference_priority1 =
+              s->allow_fp16 ? TFLITE_GPU_INFERENCE_PRIORITY_MIN_LATENCY
+                            : TFLITE_GPU_INFERENCE_PRIORITY_MAX_PRECISION;
+          auto delegate = evaluation::CreateGPUDelegate(&gpu_opts);
+        #else
+          auto delegate = evaluation::CreateGPUDelegate();
+        #endif
+
+          if (!delegate) {
+            std::cerr << "GPU acceleration is unsupported on this platform.";
+            return -1;
+          } else {
+            delegates.emplace("GPU", std::move(delegate));
+          }
+*/
+        } else if (device == "DSP") {
+#if defined(__ANDROID__) && (defined(__arm__) || defined(__aarch64__))
+          TfLiteHexagonInit();
+          TfLiteHexagonDelegateOptions options({0});
+          delegate = TfLiteHexagonDelegateCreate(&options);
+          if (!delegate) {
+            std::cerr << "Hexagon acceleration is unsupported on this platform.";
+            TfLiteHexagonTearDown();
+            return -1;
+          } /*else {
+            delegates.emplace("Hexagon", std::move(delegate));
+          }*/
+#endif
+        } else if (device == "CPU") {
+            // default execution unit, no additional actions are required
+        } else {
+           std::cerr << "The device name is not valid. Please select CPU/DSP/GPU." << std::endl;
+           return -1;
+        }
+
+        if (delegate) {
+          if (_interpreter->ModifyGraphWithDelegate(delegate) !=
+              kTfLiteOk) {
+            std::cerr << "Failed to apply TFLite delegate." << std::endl;
+            return -1;
+          }
+          std::cout << "Applied deligation successfully" << std::endl;
+        }
+
+        // --------------------------- 3. Prepare input --------------------------------------------------------
         if (_interpreter->AllocateTensors() != kTfLiteOk) {
           std::cerr << "Failed to allocate tensors!" << std::endl;
           return EXIT_FAILURE;
         }
 
-        // --------------------------- 3. Prepare input --------------------------------------------------------
         const std::vector<int> inputs = _interpreter->inputs();
         for (size_t i = 0; i < inputs.size(); i++) {
             std::string name = _interpreter->GetInputName(i);
