@@ -81,6 +81,42 @@ cv::Size addToBlob(std::string name, int batch_pos, VBlob* blob, PreprocessingOp
                 }
             }
         }
+        if (blob->_colourFormat == "RGB") {
+
+          // TODO: to implement different way
+          // reverse channels & do normalization
+          for (int c = 0; c < channels; c++) {
+            float sub = 0.f;
+            float div = 1.f;
+            if (c == 2) {
+                sub = 123.6f;
+                div = 58.395f;
+            }
+            if (c == 1) {
+                sub = 116.3f;
+                div = 57.12f;
+            }
+            if (c == 0) {
+                sub = 103.5f;
+                div = 57.375f;
+            }
+            for (int h = 0; h < height; h++) {
+              for (int w = 0; w < width; w++) {
+                size_t idx = batch_pos * channels * width * height + c * width * height + h * width + w;
+                blob_data[idx] = (blob_data[idx] - sub) / div;
+              }
+            }
+          }
+          for (int h = 0; h < height; h++) {
+            for (int w = 0; w < width; w++) {
+              size_t idx0 = batch_pos * channels * width * height + 0 * width * height + h * width + w;
+              size_t idx2 = batch_pos * channels * width * height + 2 * width * height + h * width + w;
+              float tmp = blob_data[idx0];
+              blob_data[idx0] = blob_data[idx2];
+              blob_data[idx2] = tmp;
+            }
+          }
+        }
     } else if (blob->_layout == "NHWC") {
         size_t nielements = width * height * channels;
         if (blob->_precision == FP32) {

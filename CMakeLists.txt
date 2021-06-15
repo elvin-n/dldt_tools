@@ -76,6 +76,14 @@ else()
   message("Found TensorFlow at ${TENSORFLOW_ROOT}")
 endif()
 
+set(TVM_HOME $ENV{TVM_HOME})
+if(NOT DEFINED TVM_HOME)
+  message(Warning " TVM cannot be found, please set TVM_HOME env variable to compile TVM dedicated components")
+else()
+  message("Found TVM at ${TVM_HOME}")
+endif()
+
+
 if (WIN32)
     if (NOT "${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
         message(FATAL_ERROR "Only 64-bit supported on Windows")
@@ -156,3 +164,6 @@ if(DEFINED TENSORFLOW_ROOT)
   add_subdirectory(tflite_backend)
 endif()
 
+if(DEFINED TVM_HOME)
+  add_subdirectory(tvm_backend)
+endif()
