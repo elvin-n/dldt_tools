@@ -56,10 +56,10 @@ endif()
 
 # use this flag if you need to throw custom message in case if the IE package is not found.
 find_package(InferenceEngine 2.1 QUIET)
-if (NOT DEFINED InferenceEngine_FOUND)
+if (NOT ${InferenceEngine_FOUND})
     message(WARNING " Not found Intel OpenVINO, will ignore this flow")
 else()
-    message("Found Intel OpenVINO at ${InferenceEngine_INCLUDE_DIRS}")
+    message("Found Intel OpenVINO at ${InferenceEngine_INCLUDE_DIRS} and ${InferenceEngine_FOUND}")
 endif()
 
 set(SNPE_ROOT $ENV{SNPE_ROOT})
@@ -146,7 +146,7 @@ file(GLOB subdirs RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *)
 list(REMOVE_ITEM subdirs archived common thirdparty)
 
 add_subdirectory(validation_app)
-if (DEFINED InferenceEngine_FOUND)
+if (${InferenceEngine_FOUND})
   if(NOT DEFINED ANDROID_NATIVE_API_LEVEL)
     # add_subdirectory(calibration_tool)
     add_subdirectory(ie_backend)
