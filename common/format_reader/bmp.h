@@ -23,14 +23,14 @@ class BitMap : public Reader {
 private:
     static Register<BitMap> reg;
 
-    typedef struct {
+    struct BmpHeader{
         unsigned short type   = 0u;              /* Magic identifier            */
         unsigned int size     = 0u;              /* File size in bytes          */
         unsigned int reserved = 0u;
         unsigned int offset   = 0u;              /* Offset to image data, bytes */
-    } BmpHeader;
+    };
 
-    typedef struct {
+    struct BmpInfoHeader{
         unsigned int size = 0u;                  /* Header size in bytes      */
         int width = 0, height = 0;               /* Width and height of image */
         unsigned short planes = 0u;              /* Number of colour planes   */
@@ -40,7 +40,7 @@ private:
         int xresolution = 0, yresolution = 0;    /* Pixels per meter          */
         unsigned int ncolours = 0u;              /* Number of colours         */
         unsigned int importantcolours = 0u;      /* Important colours         */
-    } BmpInfoHeader;
+    };
 
 public:
     /**
