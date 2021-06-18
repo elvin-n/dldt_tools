@@ -260,7 +260,14 @@ int main(int argc, char *argv[]) {
         if (!dataset) {
           THROW_USER_EXCEPTION(2) << "Cannot get dataset from config" << dlerror();
         }
+#ifdef __APPLE__
+        libName = std::string("lib") + launcher->framework_ + "_backend.dylib";
+#elif #_WIN32
+        libName = launcher->framework_ + "_backend.dll";
+#else
         libName = std::string("lib") + launcher->framework_ + "_backend.so";
+#endif
+
 
         // try to load backend
         void *shared_object = dlopen(libName.c_str(), RTLD_LAZY);
