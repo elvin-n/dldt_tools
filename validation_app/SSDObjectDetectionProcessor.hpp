@@ -107,11 +107,17 @@ protected:
     }
 
 public:
-    SSDObjectDetectionProcessor(Backend *backend, const std::string &flags_m, const std::vector<std::string> &outputs,
-                                const std::string &flags_d, const std::string &flags_i, const std::string &subdir, int flags_b,
-            double threshold, CsvDumper& dumper,
-            const std::string& flags_a, const std::string& classes_list_file) :
-
-        ObjectDetectionProcessor(backend, flags_m, outputs, flags_d, flags_i, subdir, flags_b, threshold,
-                        dumper, flags_a, classes_list_file, PreprocessingOptions(false, ResizeCropPolicy::Resize), true) { }
+  SSDObjectDetectionProcessor(Backend *backend,
+                              const VLauncher *launcher,
+                              const std::vector<std::string> &outputs,
+                              const std::string &flags_i,
+                              const std::string &subdir,
+                              int flags_b,
+                              double threshold,
+                              CsvDumper &dumper,
+                              const std::string &flags_a,
+                              const std::string &classes_list_file,
+                              const VDataset *dataset) :
+    ObjectDetectionProcessor(backend, launcher, outputs, flags_i, subdir, flags_b,
+                             threshold, dumper, flags_a, classes_list_file, dataset, true) { }
 };

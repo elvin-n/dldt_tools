@@ -11,11 +11,17 @@
 
 #include "Processor.hpp"
 
-Processor::Processor(Backend *backend, const std::string &flags_m, const std::vector<std::string> &outputs, const std::string &flags_d, const std::string &flags_i, int flags_b,
-        CsvDumper& dumper, const std::string& approach, PreprocessingOptions preprocessingOptions)
+Processor::Processor(Backend *backend,
+                     const std::string &flags_m,
+                     const std::vector<std::string> &outputs,
+                     const std::string &flags_d,
+                     const std::string &flags_i,
+                     int flags_b,
+                     CsvDumper& dumper,
+                     const std::vector<VPreprocessingStep> &preprocessingOptions)
 
     : _backend(backend), modelFileName(flags_m), targetDevice(flags_d), imagesPath(flags_i), batch(flags_b),
-      preprocessingOptions(preprocessingOptions), dumper(dumper), approach(approach) {
+      preprocessingOptions(preprocessingOptions), dumper(dumper) {
 
     // Load model to plugin and create an inference request
     std::map<std::string, std::string> config;

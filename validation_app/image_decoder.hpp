@@ -15,27 +15,12 @@
 
 #include "PreprocessingOptions.hpp"
 #include "backend.hpp"
+#include "ValidationConfig.h"
 
 using namespace cv;
 
 class ImageDecoder {
 public:
-    /**
-     * @brief Load single image to blob
-     * @param name - image file name
-     * @param blob - blob object to load image data to
-     * @return original image sizes
-     */
-    Size loadToBlob(std::string name, std::shared_ptr<VBlob> blob, PreprocessingOptions preprocessingOptions);
-
-    /**
-     * @brief Load a list of images to blob
-     * @param names - list of images filenames
-     * @param blob - blob object to load images data to
-     * @return original image size
-     */
-    std::map<std::string, cv::Size> loadToBlob(std::vector<std::string> names, std::shared_ptr<VBlob> blob, PreprocessingOptions preprocessingOptions);
-
     /**
      * @brief Insert image data to blob at specified batch position.
      *        Does no checks if blob has sufficient space
@@ -44,5 +29,6 @@ public:
      * @param blob - blob object to load image data to
      * @return original image size
      */
-    Size insertIntoBlob(std::string name, int batch_pos, std::shared_ptr<VBlob> blob, PreprocessingOptions preprocessingOptions);
+     Size insertIntoBlob(std::string name, int batch_pos, std::shared_ptr<VBlob> blob,
+                         const std::vector<VPreprocessingStep> &preprocessingOptions);
 };

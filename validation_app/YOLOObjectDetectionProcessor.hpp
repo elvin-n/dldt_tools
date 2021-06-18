@@ -111,11 +111,18 @@ protected:
     }
 
 public:
-    YOLOObjectDetectionProcessor(Backend *backend, const std::string &flags_m, const std::vector<std::string> &outputs,
-                                 const std::string &flags_d, const std::string &flags_i, const std::string &subdir, int flags_b,
-            double threshold, CsvDumper& dumper,
-            const std::string& flags_a, const std::string& classes_list_file) :
+  YOLOObjectDetectionProcessor(Backend *backend,
+                               const VLauncher *launcher,
+                               const std::vector<std::string> &outputs,
+                               const std::string &flags_i,
+                               const std::string &subdir,
+                               int flags_b,
+                               double threshold,
+                               CsvDumper &dumper,
+                               const std::string &flags_a,
+                               const std::string &classes_list_file,
+                               const VDataset *dataset) :
 
-        ObjectDetectionProcessor(backend, flags_m, outputs, flags_d, flags_i, subdir, flags_b, threshold,
-                        dumper, flags_a, classes_list_file, PreprocessingOptions(true, ResizeCropPolicy::Resize), false) { }
+    ObjectDetectionProcessor(backend, launcher, outputs, flags_i, subdir, flags_b,
+                             threshold, dumper, flags_a, classes_list_file, dataset, false) { }
 };

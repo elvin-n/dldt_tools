@@ -17,12 +17,19 @@
 #include <samples/common.hpp>
 #include <samples/slog.hpp>
 
-ObjectDetectionProcessor::ObjectDetectionProcessor(Backend *backend, const std::string &flags_m, const std::vector<std::string> &outputs,
-                                                   const std::string &flags_d,
-        const std::string& flags_i, const std::string& subdir, int flags_b,
-        double threshold, CsvDumper& dumper,
-        const std::string& flags_a, const std::string& classes_list_file, PreprocessingOptions preprocessingOptions, bool scaleProposalToInputSize)
-        : Processor(backend, flags_m, outputs, flags_d, flags_i, flags_b, dumper, "Object detection network", preprocessingOptions),
+ObjectDetectionProcessor::ObjectDetectionProcessor(Backend *backend,
+                                                   const VLauncher *launcher,
+                                                   const std::vector<std::string> &outputs,
+                                                   const std::string &flags_i,
+                                                   const std::string &subdir,
+                                                   int flags_b,
+                                                   double threshold,
+                                                   CsvDumper &dumper,
+                                                   const std::string &flags_a,
+                                                   const std::string &classes_list_file,
+                                                   const VDataset *dataset,
+                                                   bool scaleProposalToInputSize)
+  : Processor(backend, launcher->model_, outputs, launcher->device_, flags_i, flags_b, dumper, dataset->preprocSteps_),
               annotationsPath(flags_a), subdir(subdir), threshold(threshold), scaleProposalToInputSize(scaleProposalToInputSize) {
     // To support faster-rcnn having several inputs we need to identify input dedicated for image correctly
     for (auto &item : _inputInfo) {

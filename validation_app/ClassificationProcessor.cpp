@@ -10,25 +10,21 @@
 #include "ClassificationProcessor.hpp"
 #include "Processor.hpp"
 
-ClassificationProcessor::ClassificationProcessor(Backend *backend, const std::string &flags_m, const std::vector<std::string> &outputs,
-                                                 const std::string &flags_d, const std::string &flags_i, int flags_b,
-        CsvDumper& dumper, const std::string& flags_l,
-        PreprocessingOptions preprocessingOptions, bool zeroBackground)
-    : Processor(backend, flags_m, outputs, flags_d, flags_i, flags_b, dumper, "Classification network", preprocessingOptions), zeroBackground(zeroBackground) {
+ClassificationProcessor::ClassificationProcessor(Backend *backend,
+                                                 const VLauncher *launcher,
+                                                 const std::vector<std::string> &outputs,
+                                                 const std::string &flags_i,
+                                                 int flags_b,
+                                                 CsvDumper &dumper,
+                                                 const VDataset *dataset)
+  : Processor(backend, launcher->model_, outputs, launcher->device_, flags_i,
+              flags_b, dumper, dataset->preprocSteps_) {
 
-    // Change path to labels file if necessary
-    if (flags_l.empty()) {
-        labelFileName = fileNameNoExt(modelFileName) + ".labels";
-    } else {
-        labelFileName = flags_l;
-    }
-}
-
-ClassificationProcessor::ClassificationProcessor(Backend *backend, const std::string &flags_m, const std::vector<std::string> &outputs,
-                                                 const std::string &flags_d, const std::string &flags_i, int flags_b,
-                                                 CsvDumper &dumper, const std::string &flags_l, bool zeroBackground)
-    : ClassificationProcessor(backend, flags_m, outputs, flags_d, flags_i, flags_b, dumper, flags_l,
-            PreprocessingOptions(false, ResizeCropPolicy::ResizeThenCrop, 256, 256), zeroBackground) {
+  if (dataset->name_ == "imagenet_1001_classes") {
+    zeroBackground = true;
+  } else { // imagenet_1000_classes and all others
+    zeroBackground = false;
+  }
 }
 
 inline void TopResults(unsigned int n, shared_ptr<VBlob> input, std::vector<unsigned> &output) {

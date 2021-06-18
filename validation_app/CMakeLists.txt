@@ -30,7 +30,8 @@ endif()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../classification_sample/core
         ${CMAKE_CURRENT_SOURCE_DIR}/../common
         ${CMAKE_CURRENT_SOURCE_DIR}/../common/os/windows
-        ${CMAKE_CURRENT_SOURCE_DIR}/../../include)
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/yaml-cpp/include)
 
 link_directories(${LIB_FOLDER})
 
@@ -39,7 +40,7 @@ add_executable(${TARGET_NAME} ${MAIN_SRC} ${MAIN_HEADERS})
 
 set_target_properties(${TARGET_NAME} PROPERTIES "CMAKE_CXX_FLAGS" "${CMAKE_CXX_FLAGS} -fPIE" 
 COMPILE_PDB_NAME ${TARGET_NAME})
-target_link_libraries(${TARGET_NAME} gflags ${OpenCV_LIBRARIES})
+target_link_libraries(${TARGET_NAME} gflags ${OpenCV_LIBRARIES} yaml-cpp)
 if (UNIX)
     target_link_libraries(${TARGET_NAME} dl)
 endif()

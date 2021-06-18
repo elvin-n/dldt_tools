@@ -15,6 +15,7 @@
 #include "image_decoder.hpp"
 #include "samples/console_progress.hpp"
 #include "backend.hpp"
+#include "ValidationConfig.h"
 
 using namespace std;
 
@@ -42,17 +43,22 @@ protected:
     std::string imagesPath;
     size_t batch;
     double loadDuration;
-    PreprocessingOptions preprocessingOptions;
+    const std::vector<VPreprocessingStep> &preprocessingOptions;
 
     CsvDumper& dumper;
 
-    std::string approach;
 
     double Infer(ConsoleProgress& progress, int filesWatched, InferenceMetrics& im);
 
 public:
-    Processor(Backend *backend, const std::string &flags_m, const std::vector<std::string> &outputs, const std::string &flags_d, const std::string &flags_i, int flags_b,
-            CsvDumper& dumper, const std::string& approach, PreprocessingOptions preprocessingOptions);
+    Processor(Backend *backend,
+              const std::string &flags_m,
+              const std::vector<std::string> &outputs,
+              const std::string &flags_d,
+              const std::string &flags_i,
+              int flags_b,
+              CsvDumper &dumper,
+              const std::vector<VPreprocessingStep>& preprocessingOptions);
 
     virtual shared_ptr<InferenceMetrics> Process(bool stream_output = false) = 0;
     virtual void Report(const InferenceMetrics& im) {
@@ -63,7 +69,6 @@ public:
         slog::info << "\tModel: " << modelFileName << "\n";
         slog::info << "\tBatch size: " << batch << "\n";
         slog::info << "\tValidation dataset: " << imagesPath << "\n";
-        slog::info << "\tValidation approach: " << approach;
         slog::info << slog::endl;
 
         if (im.nRuns > 0) {

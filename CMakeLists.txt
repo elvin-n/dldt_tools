@@ -137,6 +137,7 @@ endif()
 
 add_subdirectory(thirdparty/gflags)
 add_subdirectory(thirdparty/gtest)
+add_subdirectory(thirdparty/yaml-cpp)
 add_subdirectory(common/format_reader)
 
 # collect all samples subdirectories

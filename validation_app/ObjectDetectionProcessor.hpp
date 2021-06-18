@@ -43,11 +43,18 @@ protected:
     virtual std::map<std::string, std::list<DetectedObject>> processResult(std::vector<std::string> files) = 0;
 
 public:
-    ObjectDetectionProcessor(Backend *backend, const std::string &flags_m, const std::vector<std::string> &outputs,
-                             const std::string &flags_d, const std::string &flags_i, const std::string &subdir, int flags_b,
-            double threshold,
-            CsvDumper& dumper,
-            const std::string& flags_a, const std::string& classes_list_file, PreprocessingOptions preprocessingOptions, bool scaleSizeToInputSize);
+    ObjectDetectionProcessor(Backend *backend,
+                             const VLauncher *launcher,
+                             const std::vector<std::string> &outputs,
+                             const std::string &flags_i,
+                             const std::string &subdir,
+                             int flags_b,
+                             double threshold,
+                             CsvDumper& dumper,
+                             const std::string& flags_a,
+                             const std::string& classes_list_file,
+                             const VDataset *dataset,
+                             bool scaleSizeToInputSize);
 
     shared_ptr<InferenceMetrics> Process(bool stream_output);
     virtual void Report(const InferenceMetrics& im);

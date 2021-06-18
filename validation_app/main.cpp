@@ -29,7 +29,7 @@
 #include "SSDObjectDetectionProcessor.hpp"
 #include "YOLOObjectDetectionProcessor.hpp"
 #include "backend.hpp"
-
+#include "ValidationConfig.h"
 
 typedef Backend*(*createBackend)();
 
@@ -37,7 +37,11 @@ using namespace std;
 
 /// @brief Message for help argument
 static const char help_message[] = "Print a help message";
+
+static const char config_message[] = "Config file describing validation workflow";
+
 static const char backend_message[] = "Required. Defines a backend which will perform inference of the neural network";
+static const char tf_message[] = "Required. Defines a target framework to run validation on";
 /// @brief Message for images argument
 static const char image_message[] = "Required. Folder with validation images. Path to a directory with validation images. For Classification models,"
                                     " the directory must contain folders named as labels with images inside or a .txt file with"
@@ -112,6 +116,11 @@ DEFINE_bool(h, false, help_message);
 /// @brief Define parameter for backend to use for inference of the model <br>
 /// It is a required parameter
 DEFINE_string(backend, "", backend_message);
+/// @brief Define parameter for config <br>
+/// It is a required parameter
+DEFINE_string(config, "", config_message);
+
+DEFINE_string(target_framework, "", tf_message);
 /// @brief Define parameter for a path to images <br>
 /// It is a required parameter
 DEFINE_string(i, "", image_message);
@@ -228,6 +237,8 @@ std::string strtolower(const std::string& s) {
  */
 int main(int argc, char *argv[]) {
     try {
+      UserExceptions ee;
+      std::string libName;
         // ---------------------------Parsing and validating input arguments--------------------------------------
         slog::info << "Parsing input parameters" << slog::endl;
 
@@ -238,11 +249,20 @@ int main(int argc, char *argv[]) {
             showUsage();
             return 1;
         }
-
-        UserExceptions ee;
+        if (!FLAGS_config.empty()) ee << UserException(1, "Config file is not specified (missing -config option)");
+        YAML::Node config = YAML::LoadFile(FLAGS_config);
+        ValidationConfig a(config);
+        auto launcher = a.getLauncherByFramwork(FLAGS_target_framework);
+        auto dataset = a.getDatasetsByFramwork(FLAGS_target_framework);
+        if (!launcher) {
+          THROW_USER_EXCEPTION(2) << "Cannot get launcher from config" << dlerror();
+        }
+        if (!dataset) {
+          THROW_USER_EXCEPTION(2) << "Cannot get dataset from config" << dlerror();
+        }
+        libName = std::string("lib") + launcher->framework_ + "_backend.so";
 
         // try to load backend
-        std::string libName = std::string("lib") + FLAGS_backend.c_str() + ".so";
         void *shared_object = dlopen(libName.c_str(), RTLD_LAZY);
         if (!shared_object) {
             THROW_USER_EXCEPTION(2) << "Cannot open '" << libName  << "' library" << dlerror();
@@ -255,32 +275,6 @@ int main(int argc, char *argv[]) {
         if (!backend) {
             THROW_USER_EXCEPTION(2) << "Cannot create inference backend" << dlerror();
         }
-
-
-        NetworkType netType = Undefined;
-        // Checking the network type
-        if (std::string(FLAGS_t) == "C") {
-            netType = Classification;
-        } else if (std::string(FLAGS_t) == "OD") {
-            netType = ObjDetection;
-        } else {
-            ee << UserException(5, "Unknown network type specified (invalid -t option)");
-        }
-
-        // Checking required options
-        if (FLAGS_m.empty()) ee << UserException(3, "Model file is not specified (missing -m option)");
-        if (FLAGS_i.empty()) ee << UserException(4, "Images list is not specified (missing -i option)");
-        if (FLAGS_d.empty()) ee << UserException(5, "Target device is not specified (missing -d option)");
-        if (FLAGS_b < 0) ee << UserException(6, "Batch must be positive (invalid -b option value)");
-
-        if (netType == ObjDetection) {
-            // Checking required OD-specific options
-            if (FLAGS_ODa.empty()) ee << UserException(11, "Annotations folder is not specified for object detection (missing -a option)");
-            if (FLAGS_ODc.empty()) ee << UserException(12, "Classes file is not specified (missing -c option)");
-        }
-
-        if (!ee.empty()) throw ee;
-        // -----------------------------------------------------------------------------------------------------
 
         // TODO(amalyshe) evaluate what we can do with extensions
         //if (!FLAGS_l.empty()) {
@@ -300,48 +294,26 @@ int main(int argc, char *argv[]) {
 
         std::shared_ptr<Processor> processor;
 
-        PreprocessingOptions preprocessingOptions;
-        if (strtolower(FLAGS_ppType.c_str()) == "none") {
-            preprocessingOptions = PreprocessingOptions(false, ResizeCropPolicy::DoNothing);
-        } else if (strtolower(FLAGS_ppType) == "resizecrop") {
-            size_t ppWidth = FLAGS_ppSize;
-            size_t ppHeight = FLAGS_ppSize;
-
-            if (FLAGS_ppWidth > 0) ppWidth = FLAGS_ppSize;
-            if (FLAGS_ppHeight > 0) ppHeight = FLAGS_ppSize;
-
-            if (FLAGS_ppSize > 0 || (FLAGS_ppWidth > 0 && FLAGS_ppHeight > 0)) {
-                preprocessingOptions = PreprocessingOptions(false, ResizeCropPolicy::ResizeThenCrop, ppWidth, ppHeight);
-            } else {
-                THROW_USER_EXCEPTION(2) << "Size must be specified for preprocessing type " << FLAGS_ppType;
-            }
-        } else if (strtolower(FLAGS_ppType) == "resize" || FLAGS_ppType.empty()) {
-            preprocessingOptions = PreprocessingOptions(false, ResizeCropPolicy::Resize);
-        } else {
-            THROW_USER_EXCEPTION(2) << "Unknown preprocessing type: " << FLAGS_ppType;
-        }
-
-        if (netType == Classification) {
+        if (launcher->adapter_ == "classification") {
             processor = std::shared_ptr<Processor>(
-                new ClassificationProcessor(backend, FLAGS_m, {}, FLAGS_d, FLAGS_i, FLAGS_b,
-                                                dumper, FLAGS_lbl, preprocessingOptions, FLAGS_Czb));
-        } else if (netType == ObjDetection) {
-            if (FLAGS_ODkind == "SSD") {
-                // work around for object detection models from tensorflow
-                std::vector<std::string> outputs;
-                if (FLAGS_backend == "snpe_backend") {
-                    outputs.push_back("add");
-                    outputs.push_back("Postprocessor/BatchMultiClassNonMaxSuppression");
-                }
-                processor = std::shared_ptr<Processor>(
-                    new SSDObjectDetectionProcessor(backend, FLAGS_m, outputs, FLAGS_d, FLAGS_i, FLAGS_ODsubdir, FLAGS_b,
-                                                        0.5, dumper, FLAGS_ODa, FLAGS_ODc));
-            } else if (FLAGS_ODkind == "YOLO") {
-                processor = std::shared_ptr<Processor>(
-                    new YOLOObjectDetectionProcessor(backend, FLAGS_m, { }, FLAGS_d, FLAGS_i, FLAGS_ODsubdir, FLAGS_b,
-                                                         0.5, dumper, FLAGS_ODa, FLAGS_ODc));
+                new ClassificationProcessor(backend, launcher, {}, FLAGS_i, FLAGS_b, dumper, dataset));
+        } /*else if (launcher->adapter_ == "ObjDetection") {
+          if (FLAGS_ODkind == "SSD") {
+            // work around for object detection models from tensorflow
+            std::vector<std::string> outputs;
+            if (FLAGS_backend == "snpe_backend") {
+              outputs.push_back("add");
+              outputs.push_back("Postprocessor/BatchMultiClassNonMaxSuppression");
             }
-        } else {
+            processor = std::shared_ptr<Processor>(
+              new SSDObjectDetectionProcessor(backend, FLAGS_m, outputs, FLAGS_d, FLAGS_i, FLAGS_ODsubdir, FLAGS_b,
+                                              0.5, dumper, FLAGS_ODa, FLAGS_ODc));
+          } else if (FLAGS_ODkind == "YOLO") {
+            processor = std::shared_ptr<Processor>(
+              new YOLOObjectDetectionProcessor(backend, FLAGS_m, { }, FLAGS_d, FLAGS_i, FLAGS_ODsubdir, FLAGS_b,
+                                               0.5, dumper, FLAGS_ODa, FLAGS_ODc));
+          }
+        } */ else {
             THROW_USER_EXCEPTION(2) <<  "Unknown network type specified" << FLAGS_ppType;
         }
         if (!processor.get()) {

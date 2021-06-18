@@ -27,161 +27,146 @@ int getLoadModeForChannels(int channels, int base) {
 }
 
 template <class T>
-cv::Size addToBlob(std::string name, int batch_pos, VBlob* blob, PreprocessingOptions preprocessingOptions) {
-    VShape blobSize = blob->_shape;
-    int width = blob->_layout == "NCHW" ? static_cast<int>(blobSize[3]) : static_cast<int>(blobSize[2]);
-    int height = blob->_layout == "NCHW" ? static_cast<int>(blobSize[2]) : static_cast<int>(blobSize[1]);
-    int channels = blob->_layout == "NCHW" ? static_cast<int>(blobSize[1]) : static_cast<int>(blobSize[3]);
-    T* blob_data = static_cast<T*>(blob->_data);
-    Mat orig_image, result_image;
-    int loadMode = getLoadModeForChannels(channels, 0);
+cv::Size addToBlob(std::string name, int batch_pos, VBlob *blob, const std::vector<VPreprocessingStep> &preprocessingOptions) {
+  VShape blobSize = blob->_shape;
+  int width = blob->_layout == "NCHW" ? static_cast<int>(blobSize[3]) : static_cast<int>(blobSize[2]);
+  int height = blob->_layout == "NCHW" ? static_cast<int>(blobSize[2]) : static_cast<int>(blobSize[1]);
+  int channels = blob->_layout == "NCHW" ? static_cast<int>(blobSize[1]) : static_cast<int>(blobSize[3]);
+  T *blob_data = static_cast<T *>(blob->_data);
+  Mat orig_image, result_image;
+  int loadMode = getLoadModeForChannels(channels, 0);
 
-    std::string tryName = name;
+  std::string tryName = name;
 
-    // TODO This is a dirty hack to support VOC2007 (where no file extension is put into annotation).
-    //      Rewrite.
-    if (name.find('.') == std::string::npos) tryName = name + ".JPEG";
+  // TODO This is a dirty hack to support VOC2007 (where no file extension is put into annotation).
+  //      Rewrite.
+  if (name.find('.') == std::string::npos) tryName = name + ".JPEG";
 
-    orig_image = imread(tryName, loadMode);
+  orig_image = imread(tryName, loadMode);
 
-    if (orig_image.empty()) {
-        THROW_USER_EXCEPTION(1) << "Cannot open image file: " << tryName;
-    }
+  if (orig_image.empty()) {
+    THROW_USER_EXCEPTION(1) << "Cannot open image file: " << tryName;
+  }
 
-    // Preprocessing the image
-    Size res = orig_image.size();
+  // Preprocessing the image
+  Size res = orig_image.size();
 
-    if (preprocessingOptions.resizeCropPolicy == ResizeCropPolicy::Resize) {
-        cv::resize(orig_image, result_image, Size(width, height));
-    } else if (preprocessingOptions.resizeCropPolicy == ResizeCropPolicy::ResizeThenCrop) {
-        Mat resized_image;
-
-        cv::resize(orig_image, resized_image, Size(preprocessingOptions.resizeBeforeCropX, preprocessingOptions.resizeBeforeCropY));
-
-        size_t cx = preprocessingOptions.resizeBeforeCropX / 2;
-        size_t cy = preprocessingOptions.resizeBeforeCropY / 2;
-
-        cv::Rect cropRect(cx - width / 2, cy - height / 2, width, height);
-        result_image = resized_image(cropRect);
-    } else if (preprocessingOptions.resizeCropPolicy == ResizeCropPolicy::DoNothing) {
-        // No image preprocessing to be done here
-        result_image = orig_image;
-    } else {
-        THROW_USER_EXCEPTION(1) << "Unsupported ResizeCropPolicy value";
-    }
-
-    float scaleFactor = preprocessingOptions.scaleValuesTo01 ? 255.0f : 1.0f;
-
-    if (blob->_layout == "NCHW") {
-        for (int c = 0; c < channels; c++) {
-            for (int h = 0; h < height; h++) {
-                for (int w = 0; w < width; w++) {
-                    blob_data[batch_pos * channels * width * height + c * width * height + h * width + w] =
-                        static_cast<T>(result_image.at<cv::Vec3b>(h, w)[c] / scaleFactor);
-                }
-            }
+  for (const auto &p : preprocessingOptions) {
+    if (p.type_ == "resize") {
+      Mat resized_image;
+      //cv::resize(orig_image, resized_image, Size(p.size_, p.size_), 0, 0,
+      //           p.interpolation_ == "BICUBIC" ? INTER_CUBIC : INTER_LINEAR);
+      cv::resize(orig_image, resized_image, Size(p.size_, p.size_));
+      orig_image = resized_image;
+    } else if (p.type_ == "crop") {
+      size_t cx = 0;
+      size_t cy = 0;
+      if (p.use_pillow_) {
+        cx = orig_image.cols / 2 - width / 2;
+        cy = orig_image.rows / 2 - height / 2;
+      }
+      cv::Rect cropRect(cx, cy, width, height);
+      Mat croped_image = orig_image(cropRect);
+      orig_image = croped_image;
+    } else if (p.type_ == "rgb_to_bgr") {
+      // assuming that we have 1CHW, where C should be eq to 3
+      if (channels!= 3) {
+        throw std::string("Got preprocessing step 'rgb_to_bgr' but input assumes number of channel not eq to 3");
+      }
+      for (int h = 0; h < height; h++) {
+        for (int w = 0; w < width; w++) {
+          if (orig_image.elemSize1() == 1) {
+            unsigned char tmp = orig_image.at<cv::Vec3b>(h, w)[0];
+            orig_image.at<cv::Vec3b>(h, w)[0] = orig_image.at<cv::Vec3b>(h, w)[2];
+            orig_image.at<cv::Vec3b>(h, w)[2] = tmp;
+          } else if (orig_image.elemSize1() == 4) {
+            float tmp = orig_image.at<cv::Vec3f>(h, w)[0];
+            orig_image.at<cv::Vec3f>(h, w)[0] = orig_image.at<cv::Vec3f>(h, w)[2];
+            orig_image.at<cv::Vec3f>(h, w)[2] = tmp;
+          }
         }
-        if (blob->_colourFormat == "RGB") {
-
-          // TODO: to implement different way
-          // reverse channels & do normalization
+      }
+    } else if (p.type_ == "normalization") {
+      // create
+      Mat tmpImg(orig_image.rows, orig_image.cols, CV_32FC3);
+      unsigned char *ucdata = orig_image.data;
+      float *ddata = reinterpret_cast<float *>(tmpImg.data);
+      for (int h = 0; h < height; h++) {
+        for (int w = 0; w < width; w++) {
           for (int c = 0; c < channels; c++) {
-            float sub = 0.f;
-            float div = 1.f;
-            if (c == 2) {
-                sub = 123.6f;
-                div = 58.395f;
+            if (orig_image.elemSize1() == 1) {
+              tmpImg.at<cv::Vec3f>(h, w)[c] = orig_image.at<cv::Vec3b>(h, w)[c];
+            } else if (orig_image.elemSize1() == 4) {
+              tmpImg.at<cv::Vec3f>(h, w)[c] = orig_image.at<cv::Vec3f>(h, w)[c];
             }
-            if (c == 1) {
-                sub = 116.3f;
-                div = 57.12f;
+            if (p.mean_.size() == 1) {
+              tmpImg.at<cv::Vec3f>(h, w)[c] -= p.mean_[0];
+            } else if (p.mean_.size() == 3) {
+              tmpImg.at<cv::Vec3f>(h, w)[c] -= p.mean_[c];
             }
-            if (c == 0) {
-                sub = 103.5f;
-                div = 57.375f;
-            }
-            for (int h = 0; h < height; h++) {
-              for (int w = 0; w < width; w++) {
-                size_t idx = batch_pos * channels * width * height + c * width * height + h * width + w;
-                blob_data[idx] = (blob_data[idx] - sub) / div;
-              }
-            }
-          }
-          for (int h = 0; h < height; h++) {
-            for (int w = 0; w < width; w++) {
-              size_t idx0 = batch_pos * channels * width * height + 0 * width * height + h * width + w;
-              size_t idx2 = batch_pos * channels * width * height + 2 * width * height + h * width + w;
-              float tmp = blob_data[idx0];
-              blob_data[idx0] = blob_data[idx2];
-              blob_data[idx2] = tmp;
+            if (p.std_.size() == 1) {
+              tmpImg.at<cv::Vec3f>(h, w)[c] /= p.std_[0];
+            } else if (p.std_.size() == 3) {
+              tmpImg.at<cv::Vec3f>(h, w)[c] /= p.std_[c];
             }
           }
         }
-    } else if (blob->_layout == "NHWC") {
-        size_t nielements = width * height * channels;
-        if (blob->_precision == FP32) {
-            for (size_t i = 0; i < nielements; i++) {
-                blob_data[i] = (static_cast<float>(result_image.data[i]) - 128.f )/ 127.f;
-            }
-            if (blob->_colourFormat == "RGB") {
-                for (size_t i = 0; i < nielements; i += channels) {
-                    float tmp = blob_data[i];
-                    blob_data[i] = blob_data[i + 2];
-                    blob_data[i + 2] = tmp;
-                }
-            }
-        } else if (blob->_precision == U8) {
-            for (size_t i = 0; i < nielements; i += 3) {
-                blob_data[i] = result_image.data[i + 2];
-                blob_data[i+1] = result_image.data[i + 1];
-                blob_data[i+2] = result_image.data[i];
-            }
+      }
+      orig_image = tmpImg;
+    }
+  }
+
+  for (int c = 0; c < channels; c++) {
+    for (int h = 0; h < height; h++) {
+      for (int w = 0; w < width; w++) {
+        int pos = 0;
+        if (blob->_layout == "NCHW") {
+          pos = batch_pos * channels * width * height + c * width * height + h * width + w;
+        } else if (blob->_layout == "NHWC") {
+          pos = batch_pos * channels * width * height + h * width * channels + w * channels + c;
+        } else {
+          throw std::string("Unexpected destination layout during filling of the image");
         }
+        blob_data[pos] =
+          static_cast<T>(orig_image.at<cv::Vec3f>(h, w)[c]);
+      }
     }
-
-    return res;
+  }
+  return res;
 }
 
-std::map<std::string, cv::Size> convertToBlob(std::vector<std::string> names, int batch_pos, VBlob* blob, PreprocessingOptions preprocessingOptions) {
-    if (blob->_data == nullptr) {
-        THROW_USER_EXCEPTION(1) << "Blob was not allocated";
-    }
+std::map<std::string, cv::Size> convertToBlob(std::vector<std::string> names, int batch_pos, VBlob* blob,
+                                              const std::vector<VPreprocessingStep> &preprocessingOptions) {
+  if (blob->_data == nullptr) {
+    THROW_USER_EXCEPTION(1) << "Blob was not allocated";
+  }
 
-    std::function<cv::Size(std::string, int, VBlob*, PreprocessingOptions)> add_func;
+  std::function<cv::Size(std::string, int, VBlob *, const std::vector<VPreprocessingStep>&)> add_func;
 
-    switch (blob->_precision) {
-    case FP32:
-        add_func = &addToBlob<float>;
-        break;
-    case FP16:
-    case Q78:
-    case I16:
-    case U16:
-        add_func = &addToBlob<short>;
-        break;
-    default:
-        add_func = &addToBlob<uint8_t>;
-    }
+  switch (blob->_precision) {
+  case FP32:
+    add_func = &addToBlob<float>;
+    break;
+  case FP16:
+  case Q78:
+  case I16:
+  case U16:
+    add_func = &addToBlob<short>;
+    break;
+  default:
+    add_func = &addToBlob<uint8_t>;
+  }
 
-    std::map<std::string, Size> res;
-    for (size_t b = 0; b < names.size(); b++) {
-        std::string name = names[b];
-        Size orig_size = add_func(name, batch_pos + b, blob, preprocessingOptions);
-        res.insert(std::pair<std::string, Size>(name, orig_size));
-    }
+  std::map<std::string, Size> res;
+  for (size_t b = 0; b < names.size(); b++) {
+    std::string name = names[b];
+    Size orig_size = add_func(name, batch_pos + b, blob, preprocessingOptions);
+    res.insert(std::pair<std::string, Size>(name, orig_size));
+  }
 
-    return res;
+  return res;
 }
 
-Size ImageDecoder::loadToBlob(std::string name, std::shared_ptr<VBlob> blob, PreprocessingOptions preprocessingOptions) {
-    std::vector<std::string> names = { name };
-    return loadToBlob(names, blob, preprocessingOptions).at(name);
-}
-
-std::map<std::string, cv::Size> ImageDecoder::loadToBlob(std::vector<std::string> names, std::shared_ptr<VBlob> blob, PreprocessingOptions preprocessingOptions) {
-    return convertToBlob(names, 0, blob.get(), preprocessingOptions);
-}
-
-Size ImageDecoder::insertIntoBlob(std::string name, int batch_pos, std::shared_ptr<VBlob> blob, PreprocessingOptions preprocessingOptions) {
-    return convertToBlob({ name }, batch_pos, blob.get(), preprocessingOptions).at(name);
+Size ImageDecoder::insertIntoBlob(std::string name, int batch_pos, std::shared_ptr<VBlob> blob, const std::vector<VPreprocessingStep> &preprocessingOptions) {
+  return convertToBlob({ name }, batch_pos, blob.get(), preprocessingOptions).at(name);
 }

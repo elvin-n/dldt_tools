@@ -25,16 +25,15 @@ class ClassificationProcessor : public Processor {
     };
 
 protected:
-    std::string labelFileName;
     bool zeroBackground;
 public:
-    ClassificationProcessor(Backend *backend, const std::string &flags_m, const std::vector<std::string> &outputs,
-                            const std::string &flags_d, const std::string &flags_i, int flags_b,
-            CsvDumper& dumper, const std::string& flags_l,
-            PreprocessingOptions preprocessingOptions, bool zeroBackground);
-    ClassificationProcessor(Backend *backend, const std::string &flags_m, const std::vector<std::string> &outputs,
-                            const std::string &flags_d, const std::string &flags_i, int flags_b,
-            CsvDumper& dumper, const std::string& flags_l, bool zeroBackground);
+    ClassificationProcessor(Backend *backend,
+                            const VLauncher * launcher,
+                            const std::vector<std::string> &outputs,
+                            const std::string &flags_i,
+                            int flags_b,
+                            CsvDumper& dumper,
+                            const VDataset *dataset);
 
     std::shared_ptr<InferenceMetrics> Process(bool stream_output);
     virtual void Report(const InferenceMetrics& im);
