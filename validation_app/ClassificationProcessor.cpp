@@ -12,12 +12,13 @@
 
 ClassificationProcessor::ClassificationProcessor(Backend *backend,
                                                  const VLauncher *launcher,
+                                                 const std::string &device,
                                                  const std::vector<std::string> &outputs,
                                                  const std::string &flags_i,
                                                  int flags_b,
                                                  CsvDumper &dumper,
                                                  const VDataset *dataset)
-  : Processor(backend, launcher->model_, outputs, launcher->device_, flags_i,
+  : Processor(backend, launcher->model_, outputs, device, flags_i,
               flags_b, dumper, dataset->preprocSteps_) {
 
   if (dataset->name_ == "imagenet_1001_classes") {

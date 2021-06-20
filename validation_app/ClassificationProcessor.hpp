@@ -29,6 +29,7 @@ protected:
 public:
     ClassificationProcessor(Backend *backend,
                             const VLauncher * launcher,
+                            const std::string& device,
                             const std::vector<std::string> &outputs,
                             const std::string &flags_i,
                             int flags_b,

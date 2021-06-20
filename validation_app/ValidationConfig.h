@@ -50,7 +50,7 @@ struct Model {
 class ValidationConfig {
 public:
   ValidationConfig(YAML::Node& config);
-  const VLauncher*  getLauncherByFramwork(const std::string &framework) const;
+  const VLauncher*  getLauncherByFramwork(const std::string &framework, const std::string &device) const;
   const VDataset* getDatasetsByFramwork(const std::string &framework) const;
 private:
   std::vector<Model> models_;

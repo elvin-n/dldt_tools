@@ -98,11 +98,12 @@ ValidationConfig::ValidationConfig(YAML::Node & config) {
   }
 }
 
-const VLauncher* ValidationConfig::getLauncherByFramwork(const std::string &framework) const {
+const VLauncher* ValidationConfig::getLauncherByFramwork(const std::string &framework, const std::string & device) const {
   // look for the requested framework
   for (const auto &m : models_) {
     for (const auto &l : m.launchers_) {
-      if (l.framework_ == framework) {
+      if (l.framework_ == framework &&
+          (l.device_ == device || l.device_ == "")) {
         return &l;
       }
     }

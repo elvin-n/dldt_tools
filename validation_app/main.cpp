@@ -252,7 +252,7 @@ int main(int argc, char *argv[]) {
         if (!FLAGS_config.empty()) ee << UserException(1, "Config file is not specified (missing -config option)");
         YAML::Node config = YAML::LoadFile(FLAGS_config);
         ValidationConfig a(config);
-        auto launcher = a.getLauncherByFramwork(FLAGS_target_framework);
+        auto launcher = a.getLauncherByFramwork(FLAGS_target_framework, FLAGS_d);
         auto dataset = a.getDatasetsByFramwork(FLAGS_target_framework);
         if (!launcher) {
           THROW_USER_EXCEPTION(2) << "Cannot get launcher from config" << dlerror();
@@ -303,7 +303,7 @@ int main(int argc, char *argv[]) {
 
         if (launcher->adapter_ == "classification") {
             processor = std::shared_ptr<Processor>(
-                new ClassificationProcessor(backend, launcher, {}, FLAGS_i, FLAGS_b, dumper, dataset));
+                new ClassificationProcessor(backend, launcher, FLAGS_d, {}, FLAGS_i, FLAGS_b, dumper, dataset));
         } /*else if (launcher->adapter_ == "ObjDetection") {
           if (FLAGS_ODkind == "SSD") {
             // work around for object detection models from tensorflow

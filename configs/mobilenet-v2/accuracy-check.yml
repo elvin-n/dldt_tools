@@ -26,8 +26,17 @@ models:
         preprocessing:
           - type: resize
             size: 256
+            aspect_ratio_scale: greater
+            use_pillow: true
+            interpolation: BILINEAR
           - type: crop
             size: 224
+            use_pillow: true
+          # Image channels must be swapped, because "pillow_imread" reads in RGB, but converted model expect BGR
+          - type: normalization
+            mean: (103.94, 116.78, 123.68)
+            std: 58.8235294
+          - type: rgb_to_bgr
 
 
   - name: mobilenetv2-7-tvm-OpenCL
