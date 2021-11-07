@@ -41,7 +41,7 @@ ValidationConfig::ValidationConfig(YAML::Node & config) {
         if (l.framework_ == "tvm") {
 #ifdef __APPLE__
           l.model_ = model.name_ + ".dylib";
-#elif #_WIN32
+#elif _WIN32
           l.model_ = model.name_ + ".dll";
 #else
           l.model_ = model.name_ + ".so";

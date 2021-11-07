@@ -28,7 +28,7 @@ enum evPrecision : uint8_t {
     I64 = 72,          /**< 64bit signed integer value */
     U64 = 73,          /**< 64bit unsigned integer value */
     BIN = 71,          /**< 1bit integer value */
-    BOOL = 41,         /**< 8bit bool type */
+    BOOL8 = 41,         /**< 8bit bool type */
     CUSTOM = 80        /**< custom precision has it's own name and size of elements */
 };
 

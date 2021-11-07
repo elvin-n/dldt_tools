@@ -19,7 +19,11 @@
 #include <limits>
 #include <iomanip>
 #include <memory>
+#ifndef _WIN32
 #include <dlfcn.h>
+#else
+#include<Windows.h>
+#endif
 
 #include <samples/common.hpp>
 #include <samples/slog.hpp>
@@ -255,14 +259,14 @@ int main(int argc, char *argv[]) {
         auto launcher = a.getLauncherByFramwork(FLAGS_target_framework, FLAGS_d);
         auto dataset = a.getDatasetsByFramwork(FLAGS_target_framework);
         if (!launcher) {
-          THROW_USER_EXCEPTION(2) << "Cannot get launcher from config" << dlerror();
+          THROW_USER_EXCEPTION(2) << "Cannot get launcher from config";
         }
         if (!dataset) {
-          THROW_USER_EXCEPTION(2) << "Cannot get dataset from config" << dlerror();
+          THROW_USER_EXCEPTION(2) << "Cannot get dataset from config";
         }
 #ifdef __APPLE__
         libName = std::string("lib") + launcher->framework_ + "_backend.dylib";
-#elif #_WIN32
+#elif _WIN32
         libName = launcher->framework_ + "_backend.dll";
 #else
         libName = std::string("lib") + launcher->framework_ + "_backend.so";
@@ -270,6 +274,8 @@ int main(int argc, char *argv[]) {
 
 
         // try to load backend
+        Backend* backend = nullptr;
+#ifndef _WIN32
         void *shared_object = dlopen(libName.c_str(), RTLD_LAZY);
         if (!shared_object) {
             THROW_USER_EXCEPTION(2) << "Cannot open '" << libName  << "' library" << dlerror();
@@ -278,10 +284,25 @@ int main(int argc, char *argv[]) {
         Backend* (*createBackend)() = (Backend * (*)())dlsym(shared_object, "createBackend");
         if (createBackend == nullptr)
             THROW_USER_EXCEPTION(2) << "dlSym cannot locate method 'createBackend': " << dlerror();
-        Backend* backend = createBackend();
-        if (!backend) {
-            THROW_USER_EXCEPTION(2) << "Cannot create inference backend" << dlerror();
+        backend = createBackend();
+#else
+        HMODULE h = LoadLibrary(libName.c_str());
+        if (!h) {
+            THROW_USER_EXCEPTION(2) << "Cannot open '" << libName << "' library";
         }
+        Backend* (*createBackend)() = (Backend * (*)())GetProcAddress(h, "createBackend");
+        if (createBackend == nullptr)
+            THROW_USER_EXCEPTION(2) << "GetProcAddress cannot locate method 'createBackend' in " << libName;
+        backend = createBackend();
+#endif
+        if (!backend) {
+#ifndef _WIN32
+            THROW_USER_EXCEPTION(2) << "Cannot create inference backend: " << dlerror();
+#else
+            THROW_USER_EXCEPTION(2) << "Cannot create inference backend";
+#endif
+        }
+
 
         // TODO(amalyshe) evaluate what we can do with extensions
         //if (!FLAGS_l.empty()) {
