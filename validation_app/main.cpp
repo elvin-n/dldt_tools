@@ -364,6 +364,8 @@ int main(int argc, char *argv[]) {
             showUsage();
             return ex.list().begin()->exitCode();
         }
-    }
-    return 0;
+  } catch (const std::string& message) {
+    slog::err << message << slog::endl;
+  }
+  return 0;
 }
