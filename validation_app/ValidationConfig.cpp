@@ -52,8 +52,10 @@ ValidationConfig::ValidationConfig(YAML::Node & config) {
           l.model_ = model.name_ + ".xml";
         } else if (l.framework_ == "caffe") {
           l.model_ = model.name_ + ".caffenet";
+        } else if (l.framework_ == "tf") {
+          l.model_ = model.name_ + ".pb";
         } else {
-          throw std::string("cannot create anem of the model for this framework");
+          throw std::string("cannot create name of the model for this framework");
         }
         // TODO(amalyshe): make reading of inputs
         model.launchers_.push_back(l);
