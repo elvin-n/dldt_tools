@@ -39,11 +39,51 @@ models:
           - type: rgb_to_bgr
 
 
-  - name: mobilenetv2-7-tvm-OpenCL
+  - name: mobilenetv2-7-tvm
     launchers:
       - framework: tvm
         adapter: classification
         device: OpenCL
+        model: mobilenetv2-7-tvm-OpenCL
+        inputs:
+          - name: 'input'
+            type: INPUT
+            shape: 1,3,224,224
+            layout: NCHW
+      - framework: tvm
+        adapter: classification
+        device: CPU
+        model: mobilenetv2-7-tvm-CPU
+        inputs:
+          - name: 'input'
+            type: INPUT
+            shape: 1,3,224,224
+            layout: NCHW
+
+    datasets:
+      - name: imagenet_1000_classes
+        reader: pillow_imread
+        preprocessing:
+          - type: resize
+            size: 256
+            aspect_ratio_scale: greater
+            use_pillow: true
+            interpolation: BILINEAR
+          - type: crop
+            size: 224
+            use_pillow: true
+          # Image channels must be swapped, because "pillow_imread" reads in RGB, but converted model expect BGR
+          - type: normalization
+            mean: (103.94, 116.78, 123.68)
+            std: 58.8235294
+          - type: rgb_to_bgr
+
+
+  - name: mobilenetv2-7
+    launchers:
+      - framework: snpe
+        adapter: classification
+        device: GPU16
         inputs:
           - name: 'input'
             type: INPUT

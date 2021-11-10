@@ -1,0 +1,63 @@
+models:
+  - name: googlenet-v3-tf
+    launchers:
+      - framework: tf
+        model: inception_v3_2016_08_28_frozen.pb
+        inputs:
+          - name: input
+        adapter: classification
+    datasets:
+      - name: imagenet_1001_classes
+        preprocessing:
+          - type: bgr_to_rgb
+          - type: crop
+            central_fraction: 0.875
+          - type: resize
+            size: 299
+          - type: normalization
+            mean: 127.5
+            std: 127.5
+
+  - name: googlenet-v3
+    launchers:
+      - framework: dlsdk
+        adapter: classification
+
+    datasets:
+      - name: imagenet_1001_classes
+        preprocessing:
+          - type: crop
+            central_fraction: 0.875
+          - type: resize
+            size: 299
+
+
+  - name: inceptionv3-tvm
+    launchers:
+      - framework: tvm
+        adapter: classification
+        device: OpenCL
+        model: inceptionv3-tvm-OpenCL
+        inputs:
+          - name: input
+            layout: NHWC
+
+      - framework: tvm
+        adapter: classification
+        device: CPU
+        model: inceptionv3-tvm-CPU
+        inputs:
+          - name: input
+            layout: NHWC
+
+    datasets:
+      - name: imagenet_1000_classes
+        preprocessing:
+          - type: bgr_to_rgb
+          - type: crop
+            central_fraction: 0.875
+          - type: resize
+            size: 299
+          - type: normalization
+            mean: 127.5
+            std: 127.5
