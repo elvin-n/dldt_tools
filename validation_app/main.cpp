@@ -34,6 +34,7 @@
 #include "YOLOObjectDetectionProcessor.hpp"
 #include "backend.hpp"
 #include "ValidationConfig.h"
+#include "yaml-cpp/yaml.h"  // IWYU pragma: keep
 
 typedef Backend*(*createBackend)();
 
@@ -255,7 +256,7 @@ int main(int argc, char *argv[]) {
         }
         if (!FLAGS_config.empty()) ee << UserException(1, "Config file is not specified (missing -config option)");
         YAML::Node config = YAML::LoadFile(FLAGS_config);
-        ValidationConfig a(config);
+        ValidationConfig a(&config);
         auto launcher = a.getLauncherByFramwork(FLAGS_target_framework, FLAGS_d);
         auto dataset = a.getDatasetsByFramwork(FLAGS_target_framework);
         if (!launcher) {

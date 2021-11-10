@@ -12,7 +12,7 @@
 #include "Processor.hpp"
 
 Processor::Processor(Backend *backend,
-                     const std::string &flags_m,
+                     const VLauncher *launcher,
                      const std::vector<std::string> &outputs,
                      const std::string &flags_d,
                      const std::string &flags_i,
@@ -20,12 +20,12 @@ Processor::Processor(Backend *backend,
                      CsvDumper& dumper,
                      const std::vector<VPreprocessingStep> &preprocessingOptions)
 
-    : _backend(backend), modelFileName(flags_m), targetDevice(flags_d), imagesPath(flags_i), batch(flags_b),
+  : _backend(backend), modelFileName(launcher->model_), targetDevice(flags_d), imagesPath(flags_i), batch(flags_b),
       preprocessingOptions(preprocessingOptions), dumper(dumper) {
 
     // Load model to plugin and create an inference request
     std::map<std::string, std::string> config;
-    _backend->loadModel(flags_m, targetDevice, outputs, config);
+    _backend->loadModel(launcher, targetDevice, outputs, config);
     _inputInfo = _backend->getInputDataMap();
     _outputInfo = _backend->getOutputDataMap();
 

@@ -10,10 +10,13 @@
 #include "tvm/runtime/module.h"
 #include "tvm/runtime/packed_func.h"
 #include "tvm/runtime/registry.h"
+#include "ValidationConfig.h"
 
-bool TVMBackend::loadModel(const std::string &model, const std::string &device,
+bool TVMBackend::loadModel(const VLauncher *launcher, const std::string &device,
                           const std::vector<std::string> &outputs,
                           const std::map<std::string, std::string>& config) {
+  // Device changes Context
+  // DLDeviceType target = kDLCPU;
   DLDeviceType target = kDLCPU;
   if (device == "CPU") {
     target = kDLCPU;
@@ -22,11 +25,13 @@ bool TVMBackend::loadModel(const std::string &model, const std::string &device,
   } else if (device == "Metal") {
     target = kDLMetal;
   }
-  ctx_ = DLDevice{target, 0};
-  mod_factory_ = tvm::runtime::Module::LoadFromFile(model);
+  // ctx_ = DLDevice{target, 0};
+  ctx_ = DLContext{target, 0};
+  std::cout << "Entered TVMBackend::loadModel, call tvm::runtime::Module::LoadFromFile(" << launcher->model_ << ")" << std::endl;
+  mod_factory_ = tvm::runtime::Module::LoadFromFile(launcher->model_);
   // create the graph runtime module
   gmod_ = mod_factory_.GetFunction("default")(ctx_);
-  std::cout << "Call default Packed Func - DONE" <<std::endl;
+  std::cout << "Call default Packed Func - DONE" << std::endl;
 
   tvm::runtime::PackedFunc get_num_inputs = gmod_.GetFunction("get_num_inputs");
   tvm::runtime::PackedFunc get_input = gmod_.GetFunction("get_input");
@@ -70,7 +75,8 @@ bool TVMBackend::loadModel(const std::string &model, const std::string &device,
       vblob->_precision = info._precision;
       vblob->_shape = info._shape;
 
-      DLDevice ctx{kDLCPU, 0}; //kDLMetal
+      //DLDevice ctx{kDLCPU, 0}; //kDLMetal
+      DLContext ctx{kDLCPU, 0}; //kDLMetal
       x_ = tvm::runtime::NDArray::Empty(shape,
         DLDataType{kDLFloat, 32, 1}, ctx);
       //setInput(i, x_);
@@ -81,7 +87,11 @@ bool TVMBackend::loadModel(const std::string &model, const std::string &device,
       //vblob->_ownMemory = true;
       //vblob->_data = (unsigned char *)malloc(size);
 
-      vblob->_layout = "NCHW";
+      if (launcher->inputs_.size() == 1) {
+        vblob->_layout = launcher->inputs_[0].layout_;
+      } else {
+        vblob->_layout = "NCHW";
+      }
       vblob->_colourFormat = "RGB";
       _blobs[name] = vblob;
     }
@@ -119,7 +129,8 @@ bool TVMBackend::loadModel(const std::string &model, const std::string &device,
     auto vblob = std::make_shared<VBlob>();
     vblob->_precision = info._precision;
     vblob->_shape = info._shape;
-    DLDevice ctx{kDLCPU, 0}; //kDLMetal
+    //DLDevice ctx{kDLCPU, 0}; //kDLMetal
+    DLContext ctx{kDLCPU, 0}; //kDLMetal
     y_ = tvm::runtime::NDArray::Empty(shape,
       DLDataType{kDLFloat, 32, 1}, ctx);
     vblob->_data = reinterpret_cast<void *>(y_->data);
@@ -165,6 +176,6 @@ VOutputInfo TVMBackend::getOutputDataMap() const {
 }
 
 Backend* createBackend() {
-    return new TVMBackend();
+  return new TVMBackend();
 }
 

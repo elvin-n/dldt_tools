@@ -29,7 +29,7 @@ ObjectDetectionProcessor::ObjectDetectionProcessor(Backend *backend,
                                                    const std::string &classes_list_file,
                                                    const VDataset *dataset,
                                                    bool scaleProposalToInputSize)
-  : Processor(backend, launcher->model_, outputs, launcher->device_, flags_i, flags_b, dumper, dataset->preprocSteps_),
+  : Processor(backend, launcher, outputs, launcher->device_, flags_i, flags_b, dumper, dataset->preprocSteps_),
               annotationsPath(flags_a), subdir(subdir), threshold(threshold), scaleProposalToInputSize(scaleProposalToInputSize) {
     // To support faster-rcnn having several inputs we need to identify input dedicated for image correctly
     for (auto &item : _inputInfo) {

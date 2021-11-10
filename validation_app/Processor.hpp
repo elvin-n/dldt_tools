@@ -52,7 +52,7 @@ protected:
 
 public:
     Processor(Backend *backend,
-              const std::string &flags_m,
+              const VLauncher *launcher,
               const std::vector<std::string> &outputs,
               const std::string &flags_d,
               const std::string &flags_i,

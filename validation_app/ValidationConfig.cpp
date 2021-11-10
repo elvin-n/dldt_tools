@@ -3,6 +3,7 @@
 
 #include "ValidationConfig.h"
 #include <iostream>
+#include "yaml-cpp/yaml.h"  // IWYU pragma: keep
 
 static std::vector<float> convertStrParams(const std::string& params) {
   std::vector<float> ret;
@@ -22,9 +23,9 @@ static std::vector<float> convertStrParams(const std::string& params) {
   return ret;
 }
 
-ValidationConfig::ValidationConfig(YAML::Node & config) {
+ValidationConfig::ValidationConfig(YAML::Node* config) {
   // going over all models in the yaml file
-  auto models = config["models"];
+  auto models = (*config)["models"];
   if (models) {
     for (std::size_t i = 0; i < models.size(); i++) {
       Model model;
@@ -38,24 +39,49 @@ ValidationConfig::ValidationConfig(YAML::Node & config) {
         if (ylaunchers[j]["device"]) {
           l.device_ = ylaunchers[j]["device"].as<std::string>();
         }
-        if (l.framework_ == "tvm") {
+
+        auto inputs = ylaunchers[j]["inputs"];
+        for (size_t k = 0; k < inputs.size(); k++) {
+          VInput inp;
+          inp.name_ = inputs[k]["name"].as<std::string>();
+          inp.layout_ = inputs[k]["layout"].IsDefined() ? inputs[k]["layout"].as<std::string>() : "";
+          l.inputs_.push_back(inp);
+        }
+
+        auto modelName = ylaunchers[j]["model"];
+        if (modelName.IsDefined()) {
+          l.model_ = modelName.as<std::string>();
+          if (l.framework_ == "tvm") {
 #ifdef __APPLE__
-          l.model_ = model.name_ + ".dylib";
+            l.model_ = l.model_ + ".dylib";
 #elif _WIN32
-          l.model_ = model.name_ + ".dll";
+            l.model_ = l.model_ + ".dll";
 #else
-          l.model_ = model.name_ + ".so";
+            l.model_ = l.model_ + ".so";
 #endif
-        } else if (l.framework_ == "onnx_runtime") {
-          l.model_ = model.name_ + ".onnx";
-        } else if (l.framework_ == "dlsdk") {
-          l.model_ = model.name_ + ".xml";
-        } else if (l.framework_ == "caffe") {
-          l.model_ = model.name_ + ".caffenet";
-        } else if (l.framework_ == "tf") {
-          l.model_ = model.name_ + ".pb";
+          }
         } else {
-          throw std::string("cannot create name of the model for this framework");
+          if (l.framework_ == "tvm") {
+  #ifdef __APPLE__
+            l.model_ = model.name_ + ".dylib";
+  #elif _WIN32
+            l.model_ = model.name_ + ".dll";
+  #else
+            l.model_ = model.name_ + ".so";
+  #endif
+          } else if (l.framework_ == "onnx_runtime") {
+            l.model_ = model.name_ + ".onnx";
+          } else if (l.framework_ == "dlsdk") {
+            l.model_ = model.name_ + ".xml";
+          } else if (l.framework_ == "caffe") {
+            l.model_ = model.name_ + ".caffenet";
+          } else if (l.framework_ == "tf") {
+            l.model_ = model.name_ + ".pb";
+          } else if (l.framework_ == "snpe") {
+            l.model_ = model.name_ + ".dlc";
+          } else {
+            throw std::string("cannot create name of the model for this framework");
+          }
         }
         // TODO(amalyshe): make reading of inputs
         model.launchers_.push_back(l);

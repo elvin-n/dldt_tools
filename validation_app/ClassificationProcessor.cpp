@@ -18,7 +18,7 @@ ClassificationProcessor::ClassificationProcessor(Backend *backend,
                                                  int flags_b,
                                                  CsvDumper &dumper,
                                                  const VDataset *dataset)
-  : Processor(backend, launcher->model_, outputs, device, flags_i,
+  : Processor(backend, launcher, outputs, device, flags_i,
               flags_b, dumper, dataset->preprocSteps_) {
 
   if (dataset->name_ == "imagenet_1001_classes") {

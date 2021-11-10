@@ -8,6 +8,7 @@
 #include <map>
 #include <vector>
 #include <numeric>
+#include "ValidationConfig.h"
 
 // #include "inference_engine.hpp"
 
@@ -75,7 +76,7 @@ public:
     /**
      * TODO(amalyshe) add more extended error handling mechanism instead of just bool
      */
-    virtual bool loadModel(const std::string &model, const std::string &device,
+    virtual bool loadModel(const VLauncher* launcher, const std::string &device,
                            const std::vector<std::string>& outputs,
                            const std::map<std::string, std::string> &config) = 0;
     /**

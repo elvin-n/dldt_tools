@@ -12,9 +12,10 @@ Backend* createBackend();
 #endif
 }
 
+class VLauncher;
 class TVMBackend : public Backend {
 public:
-  virtual bool loadModel(const std::string &model, const std::string &device,
+  virtual bool loadModel(const VLauncher *launcher, const std::string &device,
                          const std::vector<std::string> &outputs,
                          const std::map<std::string, std::string>& config)override;
   virtual std::shared_ptr<InferenceMetrics> process(bool streamOutput = false)override
@@ -36,7 +37,9 @@ protected:
   tvm::runtime::PackedFunc getInput_;
   tvm::runtime::PackedFunc getOutput_;
   tvm::runtime::Module gmod_;
-  DLDevice ctx_;
+
+  //DLDevice ctx_;
+  DLContext ctx_;
   // TODO: which object retain TVM network not to be released?
   tvm::runtime::Module mod_factory_;
   tvm::runtime::NDArray x_, y_;
