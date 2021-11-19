@@ -25,8 +25,8 @@ bool TVMBackend::loadModel(const VLauncher *launcher, const std::string &device,
   } else if (device == "Metal") {
     target = kDLMetal;
   }
-  // ctx_ = DLDevice{target, 0};
-  ctx_ = DLContext{target, 0};
+  ctx_ = DLDevice{target, 0};
+  // ctx_ = DLContext{target, 0};
   std::cout << "Entered TVMBackend::loadModel, call tvm::runtime::Module::LoadFromFile(" << launcher->model_ << ")" << std::endl;
   mod_factory_ = tvm::runtime::Module::LoadFromFile(launcher->model_);
   // create the graph runtime module
@@ -75,8 +75,8 @@ bool TVMBackend::loadModel(const VLauncher *launcher, const std::string &device,
       vblob->_precision = info._precision;
       vblob->_shape = info._shape;
 
-      //DLDevice ctx{kDLCPU, 0}; //kDLMetal
-      DLContext ctx{kDLCPU, 0}; //kDLMetal
+      DLDevice ctx{kDLCPU, 0}; //kDLMetal
+      //DLContext ctx{kDLCPU, 0}; //kDLMetal
       x_ = tvm::runtime::NDArray::Empty(shape,
         DLDataType{kDLFloat, 32, 1}, ctx);
       //setInput(i, x_);
@@ -129,8 +129,8 @@ bool TVMBackend::loadModel(const VLauncher *launcher, const std::string &device,
     auto vblob = std::make_shared<VBlob>();
     vblob->_precision = info._precision;
     vblob->_shape = info._shape;
-    //DLDevice ctx{kDLCPU, 0}; //kDLMetal
-    DLContext ctx{kDLCPU, 0}; //kDLMetal
+    DLDevice ctx{kDLCPU, 0}; //kDLMetal
+    //DLContext ctx{kDLCPU, 0}; //kDLMetal
     y_ = tvm::runtime::NDArray::Empty(shape,
       DLDataType{kDLFloat, 32, 1}, ctx);
     vblob->_data = reinterpret_cast<void *>(y_->data);

@@ -38,8 +38,8 @@ protected:
   tvm::runtime::PackedFunc getOutput_;
   tvm::runtime::Module gmod_;
 
-  //DLDevice ctx_;
-  DLContext ctx_;
+  DLDevice ctx_;
+  //DLContext ctx_;
   // TODO: which object retain TVM network not to be released?
   tvm::runtime::Module mod_factory_;
   tvm::runtime::NDArray x_, y_;
