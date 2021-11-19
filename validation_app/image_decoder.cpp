@@ -54,9 +54,7 @@ cv::Size addToBlob(std::string name, int batch_pos, VBlob *blob, const std::vect
   for (const auto &p : preprocessingOptions) {
     if (p.type_ == "resize") {
       Mat resized_image;
-      //cv::resize(orig_image, resized_image, Size(p.size_, p.size_), 0, 0,
-      //           p.interpolation_ == "BICUBIC" ? INTER_CUBIC : INTER_LINEAR);
-      cv::resize(orig_image, resized_image, Size(p.size_, p.size_));
+      cv::resize(orig_image, resized_image, Size(p.size_, p.size_), 0, 0, INTER_AREA);
       orig_image = resized_image;
     } else if (p.type_ == "crop") {
       size_t cx = 0;
