@@ -838,6 +838,12 @@
             <F N="../validation_app/VOCAnnotationParser.cpp"/>
             <F N="../validation_app/VOCAnnotationParser.hpp"/>
             <F N="../validation_app/YOLOObjectDetectionProcessor.hpp"/>
+            <F N="../validation_app/image_description.h"/>
+            <F N="../validation_app/average_precision_calculator.h"/>
+            <F N="../validation_app/image_description.cpp"/>
+            <F N="../validation_app/average_precision_calculator.cpp"/>
+            <F N="../validation_app/ValidationConfig.cpp"/>
+            <F N="../validation_app/ValidationConfig.h"/>
         </Folder>
         <Folder
             Name="ie_backend"
@@ -874,7 +880,44 @@
                 GUID="{D8B3B45A-BF4C-42EC-BC5E-498CF36D8939}">
                 <F N="../snpe_samples/snpe_hello_classification/CMakeLists.txt"/>
                 <F N="../snpe_samples/snpe_hello_classification/main.cpp"/>
+                <F N="../snpe_samples/snpe_hello_classification/precision_utils.cpp"/>
             </Folder>
+        </Folder>
+        <Folder
+            Name="tvm_backend"
+            Filters=""
+            GUID="{ABD4D2A8-AF05-4FBB-A86D-1328E4E3543B}">
+            <F N="../tvm_backend/CMakeLists.txt"/>
+            <F N="../tvm_backend/tvm_backend.cpp"/>
+            <F N="../tvm_backend/tvm_backend.hpp"/>
+        </Folder>
+        <Folder
+            Name="tflite_samples"
+            Filters=""
+            GUID="{8A994138-9558-4079-A1CD-7D9AB4DCF43B}">
+            <Folder
+                Name="tflite_hello_classification"
+                AutoCustom="1"
+                GUID="{C49FB4FA-EF2F-4A42-989E-5EBCCFB88E68}">
+                <F N="../tflite_samples/tflite_hello_classification/CMakeLists.txt"/>
+                <F N="../tflite_samples/tflite_hello_classification/main.cpp"/>
+            </Folder>
+            <Folder
+                Name="tflite_object_detection_ssd"
+                AutoCustom="1"
+                GUID="{165E7BFE-0980-42EC-AFAF-FE6E45940FDD}">
+                <F N="../tflite_samples/tflite_object_detection_ssd/object_detection_sample_ssd.h"/>
+                <F N="../tflite_samples/tflite_object_detection_ssd/CMakeLists.txt"/>
+                <F N="../tflite_samples/tflite_object_detection_ssd/main.cpp"/>
+            </Folder>
+        </Folder>
+        <Folder
+            Name="tflite_backend"
+            Filters=""
+            GUID="{B2DF447C-F810-4069-8E16-48DD5EBD59DE}">
+            <F N="../tflite_backend/tflite_backend.hpp"/>
+            <F N="../tflite_backend/CMakeLists.txt"/>
+            <F N="../tflite_backend/tflite_backend.cpp"/>
         </Folder>
         <F N="../build.sh"/>
         <F N="../CMakeLists.txt"/>
