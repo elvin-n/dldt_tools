@@ -23,7 +23,17 @@ if(NOT DEFINED ANDROID_NATIVE_API_LEVEL)
   target_link_libraries(tflite_object_detection_ssd PRIVATE ${TENSORFLOW_ROOT}/bazel-out/k8-opt/bin/tensorflow/lite/libtensorflowlite.so)
 else()
   if (${ANDROID_ABI} STREQUAL "arm64-v8a")
-    target_link_libraries(tflite_object_detection_ssd PRIVATE ${TENSORFLOW_ROOT}/bazel-out/arm64-v8a-opt/bin/tensorflow/lite/libtensorflowlite.so)
+    target_link_libraries(tflite_object_detection_ssd PRIVATE 
+      ${TENSORFLOW_ROOT}/bazel-out/arm64-v8a-opt/bin/tensorflow/lite/libtensorflowlite.so
+      ${TENSORFLOW_ROOT}/bazel-out/arm64-v8a-opt/bin/tensorflow/lite/delegates/hexagon/libhexagon_delegate.a
+      ${TENSORFLOW_ROOT}/bazel-out/arm64-v8a-opt/bin/tensorflow/lite/delegates/hexagon/libhexagon_implementation.a
+      ${TENSORFLOW_ROOT}/bazel-out/arm64-v8a-opt/bin/tensorflow/lite/delegates/hexagon/libhexagon_delegate_kernel.a
+      ${TENSORFLOW_ROOT}/bazel-out/arm64-v8a-opt/bin/tensorflow/lite/delegates/hexagon/libutils.a
+      ${TENSORFLOW_ROOT}/bazel-out/arm64-v8a-opt/bin/tensorflow/lite/delegates/utils/libsimple_delegate.a
+      ${TENSORFLOW_ROOT}/bazel-out/arm64-v8a-opt/bin/tensorflow/lite/delegates/libutils.a
+      ${TENSORFLOW_ROOT}/bazel-out/arm64-v8a-opt/bin/tensorflow/lite/delegates/hexagon/builders/libop_builder.a
+      ${TENSORFLOW_ROOT}/bazel-out/arm64-v8a-opt/bin/tensorflow/lite/delegates/gpu/libtensorflowlite_gpu_delegate.so
+      )
   else()
     target_link_libraries(tflite_object_detection_ssd PRIVATE
             ${TENSORFLOW_ROOT}/bazel-out/armeabi-v7a-opt/bin/tensorflow/lite/libtensorflowlite.so

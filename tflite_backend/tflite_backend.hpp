@@ -14,7 +14,7 @@ Backend* createBackend();
 
 class TFLiteBackend : public Backend {
 public:
-    virtual bool loadModel(const std::string &model, const std::string &device,
+    virtual bool loadModel(const VLauncher *launcher, const std::string &device,
                            const std::vector<std::string> &outputs,
                            const std::map<std::string, std::string>& config)override;
     virtual std::shared_ptr<InferenceMetrics> process(bool streamOutput = false)override
