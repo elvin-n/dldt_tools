@@ -28,7 +28,8 @@ bool SNPEBackend::loadModel(const VLauncher *launcher, const std::string &device
         // --------------------------- 2. Loading model to the device ------------------------------------------
         zdl::DlSystem::Runtime_t runtime = zdl::DlSystem::Runtime_t::CPU;
         if (device == "GPU") {
-            runtime = zdl::DlSystem::Runtime_t::GPU_FLOAT16;
+          // runtime = zdl::DlSystem::Runtime_t::GPU_FLOAT16;
+          runtime = zdl::DlSystem::Runtime_t::GPU_FLOAT32_16_HYBRID;
         } else if (device == "DSP") {
             runtime = zdl::DlSystem::Runtime_t::DSP_FIXED8_TF;
         } else if (device == "CPU") {

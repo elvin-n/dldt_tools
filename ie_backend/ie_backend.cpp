@@ -3,12 +3,13 @@
 
 #include "ie_backend.hpp"
 
-bool IEBackend::loadModel(const std::string &model, const std::string &device,
+bool IEBackend::loadModel(const VLauncher *launcher, const std::string &device,
                           const std::vector<std::string> &outputs,
                           const std::map<std::string, std::string>& config) {
 
     try {
-        InferenceEngine::CNNNetwork network = _core.ReadNetwork(model, model.substr(0, model.size() - 4) + ".bin");
+      InferenceEngine::CNNNetwork network = _core.ReadNetwork(launcher->model_,
+                                                              launcher->model_.substr(0, launcher->model_.size() - 4) + ".bin");
         InferenceEngine::InputsDataMap inputInfo = network.getInputsInfo();
         for (auto i : inputInfo) {
             i.second->setPrecision(InferenceEngine::Precision::FP32);

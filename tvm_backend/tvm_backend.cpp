@@ -75,8 +75,8 @@ bool TVMBackend::loadModel(const VLauncher *launcher, const std::string &device,
       vblob->_precision = info._precision;
       vblob->_shape = info._shape;
 
-      DLDevice ctx{kDLCPU, 0}; //kDLMetal
-      //DLContext ctx{kDLCPU, 0}; //kDLMetal
+      DLDevice ctx{kDLCPU, 0};
+      //DLContext ctx{kDLCPU, 0};
       x_ = tvm::runtime::NDArray::Empty(shape,
         DLDataType{kDLFloat, 32, 1}, ctx);
       //setInput(i, x_);
@@ -129,8 +129,8 @@ bool TVMBackend::loadModel(const VLauncher *launcher, const std::string &device,
     auto vblob = std::make_shared<VBlob>();
     vblob->_precision = info._precision;
     vblob->_shape = info._shape;
-    DLDevice ctx{kDLCPU, 0}; //kDLMetal
-    //DLContext ctx{kDLCPU, 0}; //kDLMetal
+    DLDevice ctx{kDLCPU, 0};
+    //DLContext ctx{kDLCPU, 0};
     y_ = tvm::runtime::NDArray::Empty(shape,
       DLDataType{kDLFloat, 32, 1}, ctx);
     vblob->_data = reinterpret_cast<void *>(y_->data);
@@ -138,7 +138,6 @@ bool TVMBackend::loadModel(const VLauncher *launcher, const std::string &device,
     vblob->_ownMemory = false;
     _blobs[name] = vblob;
   }
-
   return true;
 }
 
