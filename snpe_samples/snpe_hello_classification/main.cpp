@@ -66,8 +66,10 @@ int wmain(int argc, wchar_t *argv[]) {
 
         // --------------------------- 2. Loading model to the device ------------------------------------------
         zdl::DlSystem::Runtime_t runtime = zdl::DlSystem::Runtime_t::CPU;
-        if (device_name == "GPU") {
-            runtime = zdl::DlSystem::Runtime_t::GPU;
+        if (device_name == "GPU16") {
+            runtime = zdl::DlSystem::Runtime_t::GPU_FLOAT16;
+        } else if (device_name == "GPU32") {
+            runtime = zdl::DlSystem::Runtime_t::GPU_FLOAT32_16_HYBRID;
         } else if (device_name == "DSP") {
             runtime = zdl::DlSystem::Runtime_t::DSP;
         } else if (device_name == "CPU") {
@@ -148,7 +150,7 @@ int wmain(int argc, wchar_t *argv[]) {
         float *tf = reinterpret_cast<float *>(&(*inputTensor->begin()));
         size_t nielements = shapes[1] * shapes[2] * shapes[3];
         for (size_t i = 0; i < nielements; i++) {
-            tf[i] = static_cast<float>(resized_image.data[i]) / 255.f;
+            tf[i] = (static_cast<float>(resized_image.data[i]) - 127.5f) / 127.5f;
         }
 
         // reorder from BGR to RGB:
@@ -185,7 +187,7 @@ int wmain(int argc, wchar_t *argv[]) {
         // Looking for the Top5 values and print them in format
         // class_id     probability/value of the latest tensor in case of softmax absence
         zdl::DlSystem::ITensor *outTensor = outputTensorMap.getTensor(outNames.at(0));
-        const float* oData = reinterpret_cast<float*>(&(*outTensor->begin()));
+        const float *oData = reinterpret_cast<const float *>(&(*outTensor->begin()));
         std::map<float, int> ordered;
         for (size_t j = 0; j < outTensor->getSize(); j++) {
             ordered[oData[j]] = j;
