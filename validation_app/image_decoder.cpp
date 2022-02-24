@@ -29,8 +29,6 @@ int getLoadModeForChannels(int channels, int base) {
 template <class T>
 cv::Size addToBlob(std::string name, int batch_pos, VBlob *blob, const std::vector<VPreprocessingStep> &preprocessingOptions) {
   VShape blobSize = blob->_shape;
-  int width = blob->_layout == "NCHW" ? static_cast<int>(blobSize[3]) : static_cast<int>(blobSize[2]);
-  int height = blob->_layout == "NCHW" ? static_cast<int>(blobSize[2]) : static_cast<int>(blobSize[1]);
   int channels = blob->_layout == "NCHW" ? static_cast<int>(blobSize[1]) : static_cast<int>(blobSize[3]);
   T *blob_data = static_cast<T *>(blob->_data);
   Mat orig_image, result_image;
@@ -50,29 +48,54 @@ cv::Size addToBlob(std::string name, int batch_pos, VBlob *blob, const std::vect
 
   // Preprocessing the image
   Size res = orig_image.size();
-
   for (const auto &p : preprocessingOptions) {
     if (p.type_ == "resize") {
-      Mat resized_image;
-      cv::resize(orig_image, resized_image, Size(p.size_, p.size_), 0, 0, INTER_AREA);
-      orig_image = resized_image;
-    } else if (p.type_ == "crop") {
-      size_t cx = 0;
-      size_t cy = 0;
-      if (p.use_pillow_) {
-        cx = orig_image.cols / 2 - width / 2;
-        cy = orig_image.rows / 2 - height / 2;
+      size_t dst_width = p.size_, dst_height = p.size_;
+      if (p.aspect_ratio_scale_ == "greater") {
+        if (orig_image.cols > orig_image.rows) { // width is bigger
+          dst_width = dst_width * orig_image.cols / orig_image.rows;
+        } else {
+          dst_height = dst_height * orig_image.rows / orig_image.cols;
+        }
       }
-      cv::Rect cropRect(cx, cy, width, height);
-      Mat croped_image = orig_image(cropRect);
-      orig_image = croped_image;
-    } else if (p.type_ == "rgb_to_bgr") {
+      Mat resized_image;
+      try {
+        cv::resize(orig_image, resized_image, Size(dst_width, dst_height), 0, 0, INTER_CUBIC); // INTER_AREA
+      } catch (std::exception &e) {
+        std::cout << "ERROR:" << e.what() << std::endl;
+      }
+      orig_image = resized_image;
+    } else if (p.type_ == "crop") { // && orig_image.rows >= height && orig_image.cols >= width
+      size_t cx;
+      size_t cy;
+      size_t widthCrop = orig_image.cols, heightCrop = orig_image.rows;
+      if (p.central_fraction_.size() == 1) {
+        // get the coordinates and width/height
+        widthCrop = p.central_fraction_[0] * orig_image.cols;
+        heightCrop = p.central_fraction_[0] * orig_image.rows;
+        cx = (orig_image.cols - widthCrop) / 2;
+        cy = (orig_image.rows - heightCrop) / 2;
+      } else {
+        heightCrop = widthCrop = p.size_;
+        cx = orig_image.cols / 2 - widthCrop / 2;
+        cy = orig_image.rows / 2 - heightCrop / 2;
+      }
+      try {
+        Mat croped_image = orig_image(Range(cy, cy + heightCrop), Range(cx, cx + widthCrop));
+        orig_image = croped_image;
+      } catch (std::exception & e) {
+        std::cout << "ERROR:" << e.what() << std::endl;
+      }
+    } else if (p.type_ == "bgr_to_rgb" || p.type_ == "rgb_to_bgr") {
       // assuming that we have 1CHW, where C should be eq to 3
-      if (channels!= 3) {
+      if (channels != 3) {
         throw std::string("Got preprocessing step 'rgb_to_bgr' but input assumes number of channel not eq to 3");
       }
-      for (int h = 0; h < height; h++) {
-        for (int w = 0; w < width; w++) {
+      size_t widthS = orig_image.cols;
+      size_t heightS = orig_image.rows;
+
+      for (int h = 0; h < heightS; h++) {
+        for (int w = 0; w < widthS; w++) {
           if (orig_image.elemSize1() == 1) {
             unsigned char tmp = orig_image.at<cv::Vec3b>(h, w)[0];
             orig_image.at<cv::Vec3b>(h, w)[0] = orig_image.at<cv::Vec3b>(h, w)[2];
@@ -86,11 +109,14 @@ cv::Size addToBlob(std::string name, int batch_pos, VBlob *blob, const std::vect
       }
     } else if (p.type_ == "normalization") {
       // create
+      size_t widthN = orig_image.cols;
+      size_t heightN = orig_image.rows;
+
       Mat tmpImg(orig_image.rows, orig_image.cols, CV_32FC3);
       unsigned char *ucdata = orig_image.data;
       float *ddata = reinterpret_cast<float *>(tmpImg.data);
-      for (int h = 0; h < height; h++) {
-        for (int w = 0; w < width; w++) {
+      for (int h = 0; h < heightN; h++) {
+        for (int w = 0; w < widthN; w++) {
           for (int c = 0; c < channels; c++) {
             if (orig_image.elemSize1() == 1) {
               tmpImg.at<cv::Vec3f>(h, w)[c] = orig_image.at<cv::Vec3b>(h, w)[c];
@@ -114,6 +140,11 @@ cv::Size addToBlob(std::string name, int batch_pos, VBlob *blob, const std::vect
     }
   }
 
+  int width = blob->_layout == "NCHW" ? static_cast<int>(blobSize[3]) : static_cast<int>(blobSize[2]);
+  int height = blob->_layout == "NCHW" ? static_cast<int>(blobSize[2]) : static_cast<int>(blobSize[1]);
+  if (width != orig_image.cols || height != orig_image.rows) {
+    std::cout << "Preprocessed image does not match to NN input" << std::endl;
+  }
   for (int c = 0; c < channels; c++) {
     for (int h = 0; h < height; h++) {
       for (int w = 0; w < width; w++) {

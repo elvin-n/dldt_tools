@@ -32,7 +32,8 @@ struct VPreprocessingStep {
   std::string type_;
   int size_;
   std::string aspect_ratio_scale_;
-  bool use_pillow_;
+  bool use_pillow_ = false;
+  std::vector <float> central_fraction_;
   std::string interpolation_;
   std::vector <float> std_;
   std::vector<float> mean_;

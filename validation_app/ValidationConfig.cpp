@@ -111,6 +111,9 @@ ValidationConfig::ValidationConfig(YAML::Node* config) {
           if (ypreprocessing[k]["use_pillow"]) {
             p.use_pillow_ = ypreprocessing[k]["use_pillow"].as<bool>();
           }
+          if (ypreprocessing[k]["central_fraction"]) {
+            p.central_fraction_ = convertStrParams(ypreprocessing[k]["central_fraction"].as<std::string>());
+          }
           if (ypreprocessing[k]["std"]) {
             p.std_ = convertStrParams(ypreprocessing[k]["std"].as<std::string>());
           }
