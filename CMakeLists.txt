@@ -167,4 +167,6 @@ endif()
 
 if(DEFINED TVM_HOME)
   add_subdirectory(tvm_backend)
+  add_subdirectory(samples/tvm/hello_classification_ge)
+  add_subdirectory(samples/tvm/hello_classification_vm)
 endif()
